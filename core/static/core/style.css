@@ -9,8 +9,10 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* Ajuste do Body usando a classe que está no seu HTML */
-body.app-body {
+/* Ajuste do body - as paginas usam ora class="app-body" ora class="body",
+   entao as duas ficam definidas aqui pra funcionar nos dois casos */
+body.app-body,
+body.body {
     background: radial-gradient(circle at top right, rgba(164, 111, 210, 0.466), transparent 40%),
                 radial-gradient(circle at bottom left, rgba(13, 124, 179, 0.418), transparent 50%);
     background-color: #fcfcfc;
@@ -22,7 +24,7 @@ body.app-body {
 }
 
 /* 2. Container Principal (Força as duas colunas lado a lado) */
-.skin-container {
+.conteiner-texto {
     display: flex;
     max-width: 1140px;
     width: 100%;
@@ -32,7 +34,7 @@ body.app-body {
 }
 
 /* 3. Lado Esquerdo - Branding */
-.brand-section {
+.secao-texto {
     flex: 1;
     max-width: 500px;
 }
@@ -56,13 +58,13 @@ body.app-body {
     font-size: 16px;
 }
 
-.logo-text {
+.logo-texto {
     font-weight: 700;
     color: #0b132a;
     font-size: 18px;
 }
 
-.main-title {
+.main-titulo {
     font-size: 40px;
     font-weight: 800;
     line-height: 1.2;
@@ -71,11 +73,11 @@ body.app-body {
     letter-spacing: -1px;
 }
 
-.main-title .highlight {
+.main-titulo .highlight {
     color: #a46fd2;
 }
 
-.subtitle {
+.subtitulo {
     color: #6c757d;
     font-size: 15px;
     line-height: 1.6;
@@ -83,12 +85,13 @@ body.app-body {
 }
 
 /* Grid de Features (Cards inferiores) */
-.features-grid {
+.cards-conteiner {
     display: flex;
     gap: 16px;
 }
 
-.feature-card {
+.card-scanner,
+.card-metas {
     background: white;
     padding: 16px;
     border-radius: 16px;
@@ -100,7 +103,8 @@ body.app-body {
     flex: 1;
 }
 
-.feature-icon.orange-bg {
+.icone-scanner,
+.icone-metas {
     background-color: #fff4ed;
     color: #a46fd2;
     width: 38px;
@@ -113,21 +117,21 @@ body.app-body {
     font-size: 14px;
 }
 
-.feature-text strong {
+.icone-texto strong {
     display: block;
     font-size: 13px;
     color: #0b132a;
     margin-bottom: 4px;
 }
 
-.feature-text p {
+.icone-texto p {
     font-size: 11px;
     color: #8a92a6;
     line-height: 1.4;
 }
 
 /* 4. Lado Direito - Sessão de Autenticação */
-.auth-section {
+.secao-autenticacao {
     flex: 1;
     max-width: 430px;
     display: flex;
@@ -135,7 +139,7 @@ body.app-body {
     align-items: center;
 }
 
-.auth-card {
+.card-autenticacao {
     background: white;
     width: 100%;
     padding: 36px;
@@ -145,7 +149,7 @@ body.app-body {
 }
 
 /* Abas Alternadoras */
-.tabs-container {
+.conteiner-login-cadastro {
     background-color: #f3f4f6;
     padding: 4px;
     border-radius: 12px;
@@ -172,7 +176,7 @@ body.app-body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.form-title {
+.form-titulo {
     font-size: 22px;
     color: #0b132a;
     text-align: center;
@@ -180,7 +184,7 @@ body.app-body {
     margin-bottom: 8px;
 }
 
-.form-subtitle {
+.form-subtitulo {
     font-size: 13px;
     color: #6c757d;
     text-align: center;
@@ -188,11 +192,11 @@ body.app-body {
 }
 
 /* Inputs do Formulário */
-.input-group {
+.input-caixa {
     margin-bottom: 20px;
 }
 
-.input-group label {
+.input-caixa label {
     display: block;
     font-size: 13px;
     font-weight: 600;
@@ -200,13 +204,13 @@ body.app-body {
     margin-bottom: 8px;
 }
 
-.input-wrapper {
+.caixa-texto {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-.input-wrapper input {
+.caixa-texto input {
     width: 100%;
     padding: 14px 14px 14px 42px;
     border: 1px solid #edf2f7;
@@ -218,7 +222,7 @@ body.app-body {
     transition: all 0.2s;
 }
 
-.input-wrapper input:focus {
+.caixa-texto input:focus {
     border-color: #c813ff;
     background-color: white;
     box-shadow: 0 0 0 4px rgba(255, 106, 19, 0.1);
@@ -231,8 +235,8 @@ body.app-body {
     font-size: 15px;
 }
 
-/* Botão Laranja Principal */
-.btn-primary {
+/* Botão Roxo Principal (login / cadastro) */
+.botao {
     width: 100%;
     background-color: #a46fd2;
     color: white;
@@ -249,85 +253,17 @@ body.app-body {
     transition: background 0.2s;
 }
 
-.btn-primary:hover {
+.botao:hover {
     background-color: #8a5fc0;
 }
 
-/* Divisor "OU" */
-.divider {
-    text-align: center;
-    margin: 24px 0;
-    position: relative;
-}
-
-.divider::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background-color: #edf2f7;
-    z-index: 1;
-}
-
-.divider span {
-    background: white;
-    padding: 0 12px;
-    font-size: 11px;
-    color: #a0aec0;
-    font-weight: 600;
-    position: relative;
-    z-index: 2;
-}
-
-/* Botões de Redes Sociais */
-.social-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.btn-social {
-    width: 100%;
-    background: white;
-    border: 1px solid #edf2f7;
-    padding: 12px;
-    border-radius: 12px;
+/* Mensagem de erro no login */
+.form-erro {
+    color: #e53e3e;
     font-size: 13px;
-    font-weight: 600;
-    color: #4a5568;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.2s;
-}
-
-.btn-social:hover {
-    background-color: #f8fafc;
-}
-
-.btn-social i {
-    font-size: 16px;
-    color: #000;
-}
-
-/* Link Convidado */
-.guest-login {
     text-align: center;
-}
-
-.guest-login a {
-    font-size: 13px;
-    color: #718096;
-    text-decoration: none;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    margin-bottom: 16px;
+    font-weight: 600;
 }
 
 /* Termos de Uso inferiores */
@@ -345,63 +281,45 @@ body.app-body {
     text-decoration: none;
 }
 
+.termo-scanner {
+    font-size: 12px;
+    color: #a0aec0;
+    line-height: 1.5;
+    margin-top: 8px;
+}
+
+.termo-scanner a {
+    color: #a46fd2;
+}
+
 /* Helpers para alternância de formulários (login / registro) */
 .hide { display: none !important; }
-.form-switch form { width: 100%; }
-.form-switch .form-title { margin-top: 0; }
+.form-login form { width: 100%; }
+.form-login .form-titulo { margin-top: 0; }
 
 /* 5. Responsividade Completa (Para telas menores) */
 @media (max-width: 900px) {
-    .skin-container {
+    .conteiner-texto {
         flex-direction: column;
         gap: 40px;
         padding: 20px 10px;
     }
-    .brand-section {
+    .secao-texto {
         text-align: center;
         max-width: 100%;
     }
     .logo-area {
         justify-content: center;
     }
-    .features-grid {
+    .cards-conteiner {
         flex-direction: column;
     }
 }
 
-
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
 /* ==========================================================================
-   1. RESET E CONFIGURAÇÕES GLOBAIS
+   2. CABEÇALHO DA PÁGINA DO QUESTIONÁRIO
    ========================================================================== */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-}
-
-/* Ajuste do Body usando a classe que está no seu HTML */
-body.app-body {
-    background: radial-gradient(circle at top right, rgba(164, 111, 210, 0.466), transparent 40%),
-                radial-gradient(circle at bottom left, rgba(13, 124, 179, 0.418), transparent 50%);
-    background-color: #fcfcfc;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-.main-content {
-    width: 100%;
-    max-width: 720px; /* Largura centralizada e confortável baseada no modelo */
-}
-
-/* ==========================================================================
-   2. CABEÇALHO DA PÁGINA
-   ========================================================================== */
-.questionnaire-page h2 {
+.pagina-questionario h2 {
     font-size: 32px;
     font-weight: 800;
     text-align: center;
@@ -410,7 +328,7 @@ body.app-body {
     letter-spacing: -0.5px;
 }
 
-.questionnaire-page > p {
+.pagina-questionario > p {
     font-size: 15px;
     color: #6c757d;
     text-align: center;
@@ -420,13 +338,13 @@ body.app-body {
 /* ==========================================================================
    3. BLOCOS DE PERGUNTAS (ESTILO CARD DO MODELO)
    ========================================================================== */
-.questionnaire-form {
+.questionario-form {
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
-.form-block {
+.form-bloco {
     background: #ffffff;
     padding: 32px;
     border-radius: 20px;
@@ -435,12 +353,12 @@ body.app-body {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-block:hover {
+.form-bloco:hover {
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.04);
 }
 
 /* Títulos das perguntas */
-.form-block label:first-child {
+.form-bloco label:first-child {
     display: block;
     font-size: 15px;
     font-weight: 700;
@@ -451,9 +369,9 @@ body.app-body {
 /* ==========================================================================
    4. INPUTS, SELECTS E TEXTAREAS
    ========================================================================== */
-.form-block input[type="text"],
-.form-block input[type="number"],
-.form-block select {
+.form-bloco input[type="text"],
+.form-bloco input[type="number"],
+.form-bloco select {
     width: 100%;
     padding: 14px 16px;
     border: 1px solid #edf2f7;
@@ -465,21 +383,21 @@ body.app-body {
     transition: all 0.2s ease;
 }
 
-.form-block input[type="text"]::placeholder,
-.form-block input[type="number"]::placeholder {
+.form-bloco input[type="text"]::placeholder,
+.form-bloco input[type="number"]::placeholder {
     color: #607796;
 }
 
-.form-block input[type="text"]:focus,
-.form-block input[type="number"]:focus,
-.form-block select:focus {
+.form-bloco input[type="text"]:focus,
+.form-bloco input[type="number"]:focus,
+.form-bloco select:focus {
     border-color: #a46fd2;
     background-color: #ffffff;
     box-shadow: 0 0 0 4px rgba(164, 111, 210, 0.1);
 }
 
 /* Campo condicional (descrição da alergia) se ajustando abaixo dos radios */
-.form-block input[name="descricaoalergia"] {
+.form-bloco input[name="descricaoalergia"] {
     margin-top: 16px;
 }
 
@@ -524,7 +442,7 @@ body.app-body {
 }
 
 /* ==========================================================================
-   6. BOTÃO DE ENVIO (MANTENDO A IDENTIDADE)
+   6. BOTÃO DE ENVIO DO QUESTIONÁRIO (MANTENDO A IDENTIDADE)
    ========================================================================== */
 .btn {
     width: 100%;
@@ -553,36 +471,39 @@ body.app-body {
     transform: scale(0.99);
 }
 
-/* Adiciona a setinha dinâmica via pseudo-elemento simulando o ícone do modelo */
-.btn::after {
+/* Adiciona a setinha dinâmica via pseudo-elemento simulando o ícone do modelo.
+   So se aplica ao botao de enviar o questionario - o .escolha abaixo desliga isso */
+.questionario-form .btn::after {
     content: " →";
     font-size: 16px;
     font-weight: bold;
 }
 
 /* ==========================================================================
-   7. RESPONSIVIDADE
+   7. RESPONSIVIDADE DO QUESTIONARIO
    ========================================================================== */
 @media (max-width: 600px) {
-    body.app-body {
+    body.app-body,
+    body.body {
         padding: 30px 16px;
     }
-    
-    .questionnaire-page h2 {
+
+    .pagina-questionario h2 {
         font-size: 26px;
     }
-    
-    .form-block {
+
+    .form-bloco {
         padding: 20px;
     }
 }
 
 /* ==========================================================================
-   4. ESTILOS DA TELA DE DASHBOARD (.dashboard-grid)
+   8. ESTILOS DA TELA DE DASHBOARD
    ========================================================================== */
 
 /* Ajuste específico para a área de conteúdo do dashboard */
-body.app-body:has(.dashboard-grid) {
+body.app-body:has(.dashboard-secao),
+body.body:has(.dashboard-secao) {
     background-color: #f4f7f6; /* Tom off-white cinza azulado muito leve da imagem */
     display: flex;
     align-items: stretch;
@@ -590,7 +511,7 @@ body.app-body:has(.dashboard-grid) {
     padding: 0;
 }
 
-body.app-body .main-content {
+.main.content {
     max-width: 1200px;
     margin: 0 auto;
     flex: 1;
@@ -652,6 +573,9 @@ body.app-body .main-content {
     font-weight: 600;
     color: #718096;
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     transition: all 0.2s ease;
 }
 
@@ -665,6 +589,13 @@ body.app-body .main-content {
     color: #ffffff;
 }
 
+/* Rodapé da sidebar (perfil/configurações) - fica grudado embaixo */
+.sidebar-footer {
+    margin-top: auto;
+    border-top: 1px solid #edf2f7;
+    padding-top: 16px;
+}
+
 /* Barra de topo (dentro do conteúdo principal) */
 .topbar {
     display: flex;
@@ -672,7 +603,7 @@ body.app-body .main-content {
     margin-bottom: 24px;
 }
 
-.user-profile {
+.topbar .perfil {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -682,34 +613,30 @@ body.app-body .main-content {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
-.bell-icon {
-    font-size: 16px;
-}
-
-.user-name {
+.topbar .nome-usuario {
     font-size: 14px;
     font-weight: 600;
     color: #0b132a;
 }
 
-/* Segunda fileira do dashboard quando só sobra um card (Status de Hoje sozinho) */
-.dashboard-grid--single {
-    grid-template-columns: 1fr;
+/* Espaço entre a seção de cards de cima e a rotina de baixo */
+.dashboard-rotina {
+    margin-top: 24px;
 }
 
 /* Cabeçalho do Dashboard */
-.dashboard-header {
+.dashboard-cabecalho {
     margin-bottom: 24px;
 }
 
-.dashboard-header p {
+.dashboard-cabecalho p {
     font-size: 14px;
     color: #718096;
     font-weight: 500;
 }
 
-/* Criando o Grid de duas colunas (Esquerda Larga, Direita Estreita) */
-.dashboard-grid {
+/* Grid de duas colunas (Esquerda Larga, Direita Estreita) */
+.dashboard-secao {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 24px;
@@ -726,18 +653,18 @@ body.app-body .main-content {
 }
 
 /* CARD ESQUERDO: Saúde da Pele */
-.card-health {
+.card-saude {
     display: flex;
     align-items: center;
     gap: 40px;
 }
 
-/* Círculo de Score Simulado por Gradiente Conico */
-.score-circle {
+/* Círculo de Score Dinâmico por Gradiente Cônico */
+.circulo-saude {
     min-width: 150px;
     height: 150px;
     border-radius: 50%;
-    background: conic-gradient(#ff6a13 var(--score-fill, 78%), #edf2f7 0);
+    background: conic-gradient(#ff6a13 var(--score-fill, 0%), #edf2f7 0);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -747,7 +674,7 @@ body.app-body .main-content {
 }
 
 /* Ajuste interno dos textos do círculo */
-.score-circle h2 {
+.circulo-saude h2 {
     font-size: 36px;
     font-weight: 800;
     color: #0b132a;
@@ -755,7 +682,7 @@ body.app-body .main-content {
     z-index: 2;
 }
 
-.score-circle span {
+.circulo-saude span {
     font-size: 11px;
     color: #a0aec0;
     font-weight: 600;
@@ -778,8 +705,10 @@ body.app-body .main-content {
     margin-bottom: 8px;
 }
 
-/* Badge Verde de porcentagem/tipo */
-.badge-green {
+/* Badge verde com o tipo de pele, dentro do card de saude
+   (usa .perfil, entao a regra e presa ao .health-info pra nao bater
+   com o card "Perfil Dermatologico" que tambem se chama .perfil) */
+.health-info h3 .perfil {
     background-color: #e6f9f0;
     color: #10b981;
     font-size: 12px;
@@ -796,14 +725,14 @@ body.app-body .main-content {
 }
 
 /* Mini Grid interno com os metadados */
-.health-stats {
+.detalhes {
     display: flex;
     gap: 40px;
     border-top: 1px solid #edf2f7;
     padding-top: 20px;
 }
 
-.health-stats .label {
+.detalhes .preferencias {
     display: block;
     font-size: 11px;
     color: #a0aec0;
@@ -812,67 +741,54 @@ body.app-body .main-content {
     margin-bottom: 4px;
 }
 
-.health-stats strong {
+.detalhes strong {
     font-size: 15px;
     color: #0b132a;
     font-weight: 700;
 }
 
-
-/* CARD DIREITO: Fototipo e Alertas (UV) */
-.card-uv {
+/* CARD DIREITO: Perfil Dermatologico / Fototipo
+   (o card usa duas classes juntas: class="card perfil" - por isso o
+   seletor composto .card.perfil, pra nao confundir com o badge acima) */
+.card.perfil {
     display: flex;
     flex-direction: column;
 }
 
-.card-uv h2 {
+.card.perfil h2 {
     font-size: 18px;
     font-weight: 700;
     color: #0b132a;
     margin-bottom: 16px;
 }
 
-.card-uv h3.uv-danger {
+.card.perfil h3.fototipo {
     font-size: 48px;
     font-weight: 800;
-    color: #ff6a13; /* Mantendo a cor principal ativa */
+    color: #ff6a13;
     line-height: 1;
     margin-bottom: 12px;
 }
 
-.card-uv h3.uv-danger small {
+.card.perfil h3.fototipo small {
     font-size: 13px;
     color: #a0aec0;
     font-weight: 600;
     margin-left: 4px;
 }
 
-.card-uv p {
+.card.perfil p {
     font-size: 13px;
     color: #718096;
-    margin-bottom: 20px;
-}
-
-/* Caixa de Alerta Inferior Interna (Estilo o Alerta de Exposição) */
-.alert-box {
-    background-color: #fff5f5;
-    border: 1px solid #fed7d7;
-    border-radius: 14px;
-    padding: 14px;
-    font-size: 12px;
-    color: #c53030;
-    line-height: 1.5;
-}
-
-.alert-box strong {
-    color: #9b2c2c;
+    margin-bottom: 0;
 }
 
 /* ==========================================================================
-   5. RESPONSIVIDADE DO DASHBOARD
+   9. RESPONSIVIDADE DO DASHBOARD
    ========================================================================== */
 @media (max-width: 900px) {
-    body.app-body:has(.dashboard-grid) {
+    body.app-body:has(.dashboard-secao),
+    body.body:has(.dashboard-secao) {
         flex-direction: column;
     }
 
@@ -889,26 +805,32 @@ body.app-body .main-content {
         border-bottom: 1px solid #edf2f7;
     }
 
+    .sidebar-footer {
+        margin-top: 0;
+        border-top: none;
+        padding-top: 0;
+    }
+
     .menu {
         flex-direction: row;
         flex-wrap: wrap;
     }
 
-    body.app-body .main-content {
+    .main.content {
         padding: 20px;
     }
 
-    .dashboard-grid {
+    .dashboard-secao {
         grid-template-columns: 1fr; /* Vira uma coluna no celular */
     }
 
-    .card-health {
+    .card-saude {
         flex-direction: column;
         text-align: center;
         gap: 24px;
     }
 
-    .health-stats {
+    .detalhes {
         justify-content: center;
         gap: 24px;
     }
@@ -917,27 +839,28 @@ body.app-body .main-content {
 /* ==========================================================================
    WIDGET: Status de Hoje
    ========================================================================== */
-.card-today-status {
+.card-rotina-diaria {
     display: flex;
     flex-direction: column;
     gap: 24px;
     background: #ffffff;
 }
 
-.status-header {
+.status-cabecalho {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.status-header h3 {
+.status-cabecalho h3 {
     font-size: 18px;
     font-weight: 700;
     color: #0b132a;
 }
 
-/* Seletor Manhã / Noite */
-.toggle-switch {
+/* Seletor Manhã / Noite - usa .btn tambem, entao aqui reseta o que
+   o botao de enviar do questionario define (largura total, seta, etc.) */
+.escolha {
     background-color: #f3f4f6;
     padding: 3px;
     border-radius: 10px;
@@ -945,32 +868,41 @@ body.app-body .main-content {
     gap: 2px;
 }
 
-.switch-btn {
+.escolha .btn {
+    width: auto;
+    flex: none;
     border: none;
     background: transparent;
+    box-shadow: none;
     padding: 6px 14px;
     font-size: 12px;
     font-weight: 600;
     color: #a0aec0;
     cursor: pointer;
     border-radius: 8px;
+    margin-top: 0;
     transition: all 0.2s ease;
 }
 
-.switch-btn.active {
+.escolha .btn::after {
+    content: none;
+}
+
+.escolha .btn.ativo {
     background: #ffffff;
     color: #0b132a;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 /* Lista de Rotinas */
-.routine-list {
+.rotina-lista {
+    list-style: none;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.routine-item {
+.rotina-item {
     display: flex;
     align-items: center;
     padding: 16px 24px;
@@ -980,27 +912,28 @@ body.app-body .main-content {
     transition: background-color 0.2s ease;
 }
 
-.routine-details {
+.rotina-details {
     flex: 1;
     margin-left: 16px;
 }
 
-.routine-details strong {
+.rotina-details strong {
     display: block;
     font-size: 14px;
     color: #2d3748;
     font-weight: 600;
 }
 
-.routine-details span {
+.rotina-details span {
     font-size: 12px;
     color: #718096;
 }
 
-/* Checkboxes customizados */
-.status-check {
+/* Bolinha de status de cada item da rotina */
+.rotina-item .status {
     width: 22px;
     height: 22px;
+    min-width: 22px;
     border-radius: 50%;
     border: 2px solid #cbd5e0;
     display: flex;
@@ -1012,34 +945,34 @@ body.app-body .main-content {
 
 /* Customização baseada no estado de cada item */
 /* 1. Item Concluído (Verde) */
-.routine-item.completed {
+.rotina-item.completed {
     background-color: #f7fafc; /* Levemente opaco */
 }
-.routine-item.completed .status-check {
+.rotina-item.completed .status {
     background-color: #e6f9f0;
     border-color: #10b981;
     color: #10b981;
 }
-.routine-item.completed .routine-details strong {
+.rotina-item.completed .rotina-details strong {
     text-decoration: line-through;
     color: #a0aec0;
 }
-.routine-time {
+.rotina-time {
     font-size: 13px;
     color: #a0aec0;
     font-weight: 500;
 }
 
 /* 2. Item Fazer Agora (Laranja) */
-.routine-item.action-required {
+.rotina-item.action-required {
     background-color: #fffaf7;
     border-color: #ffeadd;
 }
-.routine-item.action-required .status-check {
+.rotina-item.action-required .status {
     border-color: #ff6a13;
     background-color: #ffffff;
 }
-.routine-action {
+.rotina-action {
     font-size: 13px;
     font-weight: 700;
     color: #ff6a13;
@@ -1047,15 +980,6 @@ body.app-body .main-content {
 }
 
 /* 3. Item Pendente (Borda Padrão) */
-.routine-item.pending .status-check {
+.rotina-item.pending .status {
     border-color: #cbd5e0;
-}
-
-/* mensagem de erro no login */
-.form-error {
-    color: #e53e3e;
-    font-size: 13px;
-    text-align: center;
-    margin-bottom: 16px;
-    font-weight: 600;
 }

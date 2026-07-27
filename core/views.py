@@ -10,7 +10,7 @@ import time
 YOUCAM_URL = 'https://yce-api-01.makeupar.com/s2s/v2.1/task/skin-analysis' # link para conectar a api
 HEADERS = {
     "Content-Type": "application/json",
-    "Authorization": "sk-9OuUGeIZwOU2lGh3yUm0iOu-e31dZ6BPSt1qcjFC-LNpoGu1EDZSKlyVJfebOaze"  # token de acesso api
+    "Authorization": "  "  # token de acesso api
 }
 
 def comunicar_youcam_api(foto_arquivo): #envia a foto para a api e recebe o resultado

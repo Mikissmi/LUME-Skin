@@ -100,7 +100,3 @@ Thumbs.db
 # Ignore local virtualenv and environment files
 .env
 .env.*
-
-# Ignore Django migrations
-*/migrations/*.py
-*/migrations/*.pyc

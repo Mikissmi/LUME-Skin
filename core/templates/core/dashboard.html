@@ -12,7 +12,7 @@
                 <h2>{{ perfil.porcentagem_saude }}%</h2>
                 <span>Score Atual</span>
             </div>
-            <div class="health-info"> \\ tem que pensar em outra coisa pra colocar no lugar de "saude da pele"
+            <div class="health-info">
                 <h3>Saúde da Pele <span class="perfil">{{ perfil.tipo_pele|capfirst }}</span></h3>
                 <p>Idade: {{ perfil.idade }} anos | Objetivo: {{ perfil.objetivo|default:'Melhorar a pele' }}.</p>
                 <div class="detalhes">
@@ -34,7 +34,7 @@
             <p>
                 {% if perfil.fototipo <= 2 %}
                     Pele mais sensível ao sol — reforce o protetor solar ao longo do dia.
-                {% elseif perfil.fototipo <= 4 %}
+                {% elif perfil.fototipo <= 4 %}
                     Pele moderadamente sensível ao sol — use protetor solar regularmente.
                 {% else %}
                     Pele mais resistente ao sol, mas não se esqueça do protetor solar.

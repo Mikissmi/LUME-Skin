@@ -13,7 +13,7 @@
             <h2>Questionário Dermatológico</h2>
             <p>Responda com sinceridade para personalizarmos sua rotina.</p>
             
-          <form method="POST" action="{% url 'questionario' %}" class="questionario-form">
+          <form method="POST" action="{% url 'questionario' %}" enctype="multipart/form-data" class="questionario-form">
                 {% csrf_token %}
 
                 <div class="form-bloco">
@@ -86,18 +86,12 @@
                     </div>
                 </div>
 
-                <form method="POST" action="{% url 'questionario' %}" enctype="multipart/form-data" class="questionario-form">
                     <div class="form-bloco">
                         <label>8. Deseja realizar um escaneamento facial com IA para uma analise mais precisa? (Opcional)</label>
                         <div class="radio-group" style="margin-bottom: 15px;">
                             <label><input type="radio" name="quer_escanear" value="sim" id="scan-sim" onclick="toggleUploadField()"> Sim, quero escanear minha pele</label>
                             <label><input type="radio" name="quer_escanear" value="nao" id="scan-nao" checked onclick="toggleUploadField()"> Não, apenas responder o questionário</label>
-                            {% if value="sim" %}
                             <p class="termo-scanner">Ao continuar, você concorda com nossos <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.</p>
-                            {% else %}
-                            // nao sei oq colocar aqui, mas tem q ter algo pra n dar erro
-                            <p>segue filho</p>
-                            {% endif %}
                         </div>
 
                         <div id="bloco-upload-foto" style="display: none; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; background-color: #f9f9f9;">

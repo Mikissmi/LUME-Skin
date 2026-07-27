@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'core',
 ]
 
+# usa o nosso Usuario customizado no lugar do User padrao do Django
+AUTH_USER_MODEL = 'core.Usuario'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -78,8 +81,15 @@ WSGI_APPLICATION = 'configuracao.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'lumeskin',
+        'USER': 'root',
+        'PASSWORD': 'SUA_SENHA_AQUI',  # <-- coloque aqui a senha do seu MySQL local
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
 }
 

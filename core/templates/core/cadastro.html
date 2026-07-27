@@ -78,18 +78,10 @@
         <p class="form-subtitulo">Cadastre-se para começar sua jornada de skincare inteligente.</p>
     
         <div class="input-caixa">
-            <label>Nome</label>
+            <label>Nome Completo</label>
             <div class="caixa-texto">
                 <i class="fa-solid fa-user input-icon"></i>
-                <input type="text" name="nome" placeholder="Nome" required>
-            </div>
-        </div>
-
-        <div class="input-caixa">
-            <label>Sobrenome</label>
-            <div class="caixa-texto">
-                <i class="fa-solid fa-user input-icon"></i>
-                <input type="text" name="sobrenome" placeholder="Sobrenome" required>
+                <input type="text" name="nome" placeholder="Seu nome completo" required>
             </div>
         </div>
 
@@ -111,11 +103,11 @@
             </div>
         </div>
         
-        <button type="submit" class="botao">Cadastrar e Iniciar "&nbsp;</button>
-    </form> 
+        <button type="submit" class="botao">Cadastrar e Iniciar &nbsp;</button>
+    </form>
 </div>
-        
-            <p class="terms-text"> // tem que fazer os termos
+
+            <p class="terms-text">
                 Ao continuar, você concorda com nossos <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.
             </p>
         </div>
@@ -138,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const toShow = document.getElementById(targetId);
             if(!toShow) return;
 
-            document.querySelectorAll('.form-switch form').forEach(f=>{
+            document.querySelectorAll('.form-login form').forEach(f=>{
                 if(f.id === targetId) f.classList.remove('hide'); else f.classList.add('hide');
             });
         });
