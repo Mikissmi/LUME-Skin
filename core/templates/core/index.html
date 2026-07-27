@@ -5,32 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LUME Skin</title>
-    <link rel="stylesheet" href="{% static 'core/style.css' %}">
+    <link rel="stylesheet" href="{% static 'core/style.css' %}?v=3">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="app-body">
+<body class="body">
     <aside class="sidebar">
         <div class="logo">
             <div class="logo-icon">𖥸</div>
             <h2>LUME Skin</h2>
         </div>
         <nav class="menu">
-            <a href="{% url 'dashboard' %}" class="menu-item active">Dashboard (Home)</a>
-            <a href="#" class="menu-item">Scanner de Pele por IA</a>
-           
-            <a href="#" class="menu-item">Recomendações</a>
-            <a href="#" class="menu-item">Especialistas</a>
+            <a href="{% url 'dashboard' %}" class="menu-item active">Dashboard</a>
+            <a href="{% url ' ' %}" class="menu-item">Scanner de Pele por IA</a> 
+            <a href="{% url ' ' %}" class="menu-item">Recomendações</a>
+            <a href="{% url ' ' %}" class="menu-item">Especialistas</a>
         </nav>
         <div class="sidebar-footer">
-           
+            <a href="{% url ' ' %}" class="menu-item"><i class="fa-jelly fa-regular fa-address-card"></i>Perfil e configurações</a>
         </div>
     </aside>
 
-    <main class="main-content">
+    <main class="main content">
         <header class="topbar">
-            <div class="user-profile">
-                <span class="bell-icon">🔔</span>
-                <span class="user-name">{{ request.user.first_name|default:'Usuário' }}</span>
+            <div class="perfil">
+                <span class="nome-usuario">{{ request.user.nome_usuario|default:'Usuário' }}</span>
             </div>
         </header>
         

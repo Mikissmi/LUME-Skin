@@ -2,133 +2,144 @@
 
 {% block content %}
     {% if perfil %}
-    <div class="dashboard-header">
-        <h3>Aqui está o resumo da sua pele, {{ perfil.usuario.first_name|default:'usuário' }}.</h3>
+    <div class="dashboard-cabecalho">
+        <h3>Aqui está o resumo da sua pele, {{ perfil.usuario.nome_usuario|default:'usuário' }}.</h3>
     </div>
 
-    <div class="dashboard-grid">
-        <div class="card card-health">
-            <div class="score-circle">
+    <div class="dashboard-secao">
+        <div class="card card-saude">
+            <div class="circulo-saude" style="--score-fill: {{ perfil.porcentagem_saude }}%;">
                 <h2>{{ perfil.porcentagem_saude }}%</h2>
                 <span>Score Atual</span>
             </div>
-            <div class="health-info">
-                <h3>Saúde da Pele <span class="badge-green">{{ perfil.tipo_pele|capfirst }}</span></h3>
-                <p>Idade: {{ perfil.idade }} anos · Objetivo: {{ perfil.objetivo|default:'Melhorar a pele' }}.</p>
-                <div class="health-stats">
+            <div class="health-info"> \\ tem que pensar em outra coisa pra colocar no lugar de "saude da pele"
+                <h3>Saúde da Pele <span class="perfil">{{ perfil.tipo_pele|capfirst }}</span></h3>
+                <p>Idade: {{ perfil.idade }} anos | Objetivo: {{ perfil.objetivo|default:'Melhorar a pele' }}.</p>
+                <div class="detalhes">
                     <div>
-                        <span class="label">Preferência</span>
-                        <strong>{{ perfil.prefere_creme_ou_gel|capfirst }}</strong>
+                        <span class="preferencias">Preferência</span>
+                        <strong>{{ perfil.preferencia_produto|capfirst }}</strong>
                     </div>
                     <div>
-                        <span class="label">Usa maquiagem</span>
-                        <strong>{{ perfil.usa_maquiagem_diariamente|yesno:'Sim,Não' }}</strong>
+                        <span class="preferencias">Usa maquiagem</span>
+                        <strong>{% if perfil.usa_maquiagem_diariamente == 'sim' %}Sim{% else %}Não{% endif %}</strong>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card card-uv">
-            <h2>Perfil dermatológico</h2>
-            <h3 class="uv-danger">{{ perfil.fototipo }} <small>TIPO</small></h3>
-            <p>Tipo de pele registrado: {{ perfil.tipo_pele|capfirst }}.</p>
+        <div class="card perfil">
+            <h2>Perfil Dermatológico</h2>
+            <h3 class="fototipo">{{ perfil.fototipo }} <small>FOTOTIPO</small></h3>
+            <p>
+                {% if perfil.fototipo <= 2 %}
+                    Pele mais sensível ao sol — reforce o protetor solar ao longo do dia.
+                {% elseif perfil.fototipo <= 4 %}
+                    Pele moderadamente sensível ao sol — use protetor solar regularmente.
+                {% else %}
+                    Pele mais resistente ao sol, mas não se esqueça do protetor solar.
+                {% endif %}
+            </p>
         </div>
     </div>
 
-    <div class="card-analise-ia" style="background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-    <h3>Resultado do Scanner de Pele</h3>
-    
-    <div class="scanner-display" style="margin-top: 15px;">
-        {% if url_ia_workflow %}
-            <img src="{{ url_ia_workflow }}" alt="Rosto analisado pela IA" style="max-width: 100%; width: 400px; height: auto; border-radius: 8px;">
-        {% elif perfil.foto_rosto %}
-            <img src="{{ perfil.foto_rosto.url }}" alt="Sua Foto" style="max-width: 100%; width: 400px; height: auto; border-radius: 8px;">
-            <p style="color: #ffb33b; font-size: 0.85rem; margin-top: 5px;">Exibindo foto original (as marcações automáticas não puderam ser geradas).</p>
-        {% else %}
-            <p>Nenhuma foto disponível para o perfil.</p>
-        {% endif %}
-    </div>
-</div>
-
-    <div class="dashboard-grid">
-        <div class="card card-today-status">
-            <div class="status-header">
-                <h3>Status de Hoje</h3>
-                <div class="toggle-switch">
-                    <button class="switch-btn active" data-mode="manha">Manhã</button>
-                    <button class="switch-btn" data-mode="noite">Noite</button>
-                </div>
+    <div class="dashboard-rotina">
+    <div class="card card-rotina-diaria">
+        <div class="status-cabecalho">
+            <h3>Status de Hoje</h3>
+            <div class="escolha" role="tablist" aria-label="Período do dia">
+                <button class="btn ativo" data-mode="manha" role="tab" aria-selected="true">Manhã</button>
+                <button class="btn" data-mode="noite" role="tab" aria-selected="false">Noite</button>
             </div>
+        </div>
 
-            <div class="routine-list" id="routine-list">
-                {% for item in rotina_manha %}
-                <div class="routine-item {{ item.class }}">
-                    <div class="status-check">
-                        {% if item.icon %}
-                        <i class="fa-solid {{ item.icon }}"></i>
-                        {% endif %}
-                    </div>
-                    <div class="routine-details">
-                        <strong>{{ item.title }}</strong>
-                        <span>{{ item.description }}</span>
-                    </div>
-                    {% if item.action %}
-                    <div class="routine-action">{{ item.action }}</div>
-                    {% else %}
-                    <div class="routine-time">{{ item.time }}</div>
+        <ul class="rotina-lista" id="rotina-lista">
+            {% for item in rotina_manha %}
+            <li class="rotina-item {{ item.class }}">
+                <div class="status">
+                    {% if item.icon %}
+                    <i class="fa-solid {{ item.icon }}" aria-hidden="true"></i>
                     {% endif %}
                 </div>
-                {% endfor %}
-            </div>
+                <div class="rotina-details">
+                    <strong>{{ item.title }}</strong>
+                    <span>{{ item.description }}</span>
+                </div>
+                {% if item.action %}
+                <div class="rotina-action">{{ item.action }}</div>
+                {% else %}
+                <div class="rotina-time">{{ item.time }}</div>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
 
-            {{ rotina_manha|json_script:"rotina-manha-data" }}
-            {{ rotina_noite|json_script:"rotina-noite-data" }}
-        </div>
-        <script>
-            (function() {
-                const rotinaManha = JSON.parse(document.getElementById('rotina-manha-data').textContent);
-                const rotinaNoite = JSON.parse(document.getElementById('rotina-noite-data').textContent);
-                const routineList = document.getElementById('routine-list');
-                const buttons = document.querySelectorAll('.toggle-switch .switch-btn');
+        {{ rotina_manha|json_script:"rotina-manha-data" }}
+        {{ rotina_noite|json_script:"rotina-noite-data" }}
+    </div>
+    <script>
+        (function() {
+            const rotinaManha = JSON.parse(document.getElementById('rotina-manha-data').textContent);
+            const rotinaNoite = JSON.parse(document.getElementById('rotina-noite-data').textContent);
+            const listaRotina = document.getElementById('rotina-lista');
+            const botoes = document.querySelectorAll('.escolha .btn');
 
-                function renderRoutine(items) {
-                    routineList.innerHTML = items.map(item => {
-                        const iconHtml = item.icon ? `<i class="fa-solid ${item.icon}"></i>` : '';
-                        const actionHtml = item.action
-                            ? `<div class="routine-action">${item.action}</div>`
-                            : `<div class="routine-time">${item.time || ''}</div>`;
-                        return `
-                            <div class="routine-item ${item.class}">
-                                <div class="status-check">${iconHtml}</div>
-                                <div class="routine-details">
-                                    <strong>${item.title}</strong>
-                                    <span>${item.description}</span>
-                                </div>
-                                ${actionHtml}
-                            </div>
-                        `;
-                    }).join('');
+            function criarItemRotina(item) {
+                const li = document.createElement('li');
+                li.className = `rotina-item ${item.class}`;
+
+                const status = document.createElement('div');
+                status.className = 'status';
+                if (item.icon) {
+                    const icone = document.createElement('i');
+                    icone.className = `fa-solid ${item.icon}`;
+                    icone.setAttribute('aria-hidden', 'true');
+                    status.appendChild(icone);
                 }
 
-                buttons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        buttons.forEach(btn => btn.classList.remove('active'));
-                        button.classList.add('active');
-                        renderRoutine(button.dataset.mode === 'noite' ? rotinaNoite : rotinaManha);
-                    });
-                });
-            })();
-        </script>
+                const detalhes = document.createElement('div');
+                detalhes.className = 'rotina-details';
+                const titulo = document.createElement('strong');
+                titulo.textContent = item.title;
+                const descricao = document.createElement('span');
+                descricao.textContent = item.description;
+                detalhes.append(titulo, descricao);
 
-        <div class="card card-uv">
-            <h2>Níveis de UV</h2>
-            <h3 class="uv-danger">{{ perfil.fototipo }} <small>TIPO</small></h3>
-            <p>Tipo de pele registrado: {{ perfil.tipo_pele|capfirst }}.</p>
-        </div>
-    </div>
+                const extra = document.createElement('div');
+                if (item.action) {
+                    extra.className = 'rotina-action';
+                    extra.textContent = item.action;
+                } else {
+                    extra.className = 'rotina-time';
+                    extra.textContent = item.time || '';
+                }
+
+                li.append(status, detalhes, extra);
+                return li;
+            }
+
+            function renderizarRotina(itens) {
+                listaRotina.innerHTML = ''; // string vazia, sem risco - so limpa a lista
+                itens.forEach(item => listaRotina.appendChild(criarItemRotina(item)));
+            }
+
+            botoes.forEach(botao => {
+                botao.addEventListener('click', () => {
+                    botoes.forEach(b => {
+                        b.classList.remove('ativo');
+                        b.setAttribute('aria-selected', 'false');
+                    });
+                    botao.classList.add('ativo');
+                    botao.setAttribute('aria-selected', 'true');
+                    renderizarRotina(botao.dataset.mode === 'noite' ? rotinaNoite : rotinaManha);
+                });
+            });
+        })();
+    </script>
+</div>
 
     {% else %}
-    <div class="dashboard-header">
+    <div class="dashboard-cabecalho">
         <p>Nenhum perfil encontrado. Complete o questionário para ver o seu dashboard.</p>
     </div>
     {% endif %}

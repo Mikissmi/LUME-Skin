@@ -8,27 +8,20 @@
     <link rel="stylesheet" href="{% static 'core/style.css' %}?v=2">
 </head>
 <body class="app-body">
-    <main class="main-content">
-        <div class="questionnaire-page">
+    <main class="main content">
+        <div class="pagina-questionario">
             <h2>Questionário Dermatológico</h2>
             <p>Responda com sinceridade para personalizarmos sua rotina.</p>
             
-            <!-- Para que o HTML consiga enviar arquivos (como a foto do rosto do usuário) para o servidor Django através do formulário, você obrigatoriamente precisa adicionar o atributo enctype="multipart/form-data" na tag <form>. -->
-        
-          <form method="POST" action="{% url 'questionario' %}" enctype="multipart/form-data" class="questionnaire-form">
+          <form method="POST" action="{% url 'questionario' %}" class="questionario-form">
                 {% csrf_token %}
 
-                <div class="form-block">
-                    <label>0. Qual a sua idade?</label>
+                <div class="form-bloco">
+                    <label>1. Qual a sua idade?</label>
                     <input type="number" name="idade" min="10" max="120" required>
                 </div>
 
-                <div class="form-block">
-                    <label>1. Qual é o seu principal objetivo com o skincare?</label>
-                    <input type="text" name="objetivo" placeholder="Ex: Hidratar, controlar oleosidade, reduzir manchas" required>
-                </div>
-
-                <div class="form-block">
+                <div class="form-bloco">
                     <label>2. Qual o seu tipo de pele predominante?</label>
                     <select name="tipo_pele" required>
                         <option value="oleosa">Oleosa (Brilho excessivo e poros abertos)</option>
@@ -36,18 +29,28 @@
                         <option value="mista">Mista (Oleosa na zona T, seca nas bochechas)</option>
                         <option value="normal">Normal (Equilibrada)</option>
                     </select>
-                </div>
-
-                <div class="form-block">
-                    <label>Diagnosticado por um dermatologista ou uma análise pessoal?</label>
+                    <label>2.1. Diagnosticado por um dermatologista ou uma análise pessoal?</label>
                     <div class="radio-group">
                         <label><input type="radio" name="diagnostico" value="0"> Diagnosticado por um dermatologista</label>
                         <label><input type="radio" name="diagnostico" value="1"> Análise pessoal</label>
                     </div>
                 </div>
 
-                <div class="form-block">
-                    <label>3. Você tem histórico de alergias na pele?</label>
+                <div class="form-bloco">
+                    <label>3. Qual é o seu principal objetivo com o skincare?</label>
+                        <select name="objetivo" required>
+                            <option value="hidratar">Hidratar</option>
+                            <option value="controlar oleosidade">Controlar Oleosidade</option>
+                            <option value="reduzir manchas">Reduzir Manchas</option>
+                            <option value="anti-idade">Anti-idade</option>
+                            <option value="reduzir acne">Reduzir Acne</option>
+                            <option value="melhorar textura">Melhorar Textura</option>
+                            <option value="outro">Outro <input type="text" name="objetivo_outro" placeholder="Especifique..."></option>
+                        </select>
+                    </div>
+
+                <div class="form-bloco">
+                    <label>4. Você tem histórico de alergias na pele?</label>
                     <div class="radio-group">
                         <label><input type="radio" name="alergias" value="0"> Não, nunca tive</label>
                         <label><input type="radio" name="alergias" value="1"> Sim</label>
@@ -55,26 +58,27 @@
                     <input type="text" name="descricaoalergia" placeholder="Descreva as alergias...">
                 </div>
 
-                <div class="form-block">
-                    <label>4. Você utiliza maquiagem diariamente?</label>
+                <div class="form-bloco">
+                    <label>5. Você utiliza maquiagem diariamente?</label>
                     <div class="radio-group">
                         <label><input type="radio" name="maquiagem" value="0"> Não</label>
                         <label><input type="radio" name="maquiagem" value="1"> Sim</label>
                     </div>
                 </div>
 
-                <div class="form-block">
-                    <label>5. Como sua pele reage ao sol?</label>
+                <div class="form-bloco">
+                    <label>6. Como sua pele reage ao sol?</label>
                     <div class="radio-group">
                         <label><input type="radio" name="reacao_sol" value="0"> Sempre queima, nunca bronzeia</label>
-                        <label><input type="radio" name="reacao_sol" value="1"> Sempre queima, bronzeia muito pouco</label>
+                        <label><input type="radio" name="reacao_sol" value="1"> Sempre queima, bronzeia minimamente</label>
                         <label><input type="radio" name="reacao_sol" value="2"> Queima moderadamente, bronzeia gradualmente</label>
                         <label><input type="radio" name="reacao_sol" value="3"> Raramente queima, bronzeia com facilidade</label>
+                        <label><input type="radio" name="reacao_sol" value="4"> Quase nunca queima, bronzeia muito facilmente</label>
                     </div>
                 </div>
 
-                <div class="form-block">
-                    <label>6. Você prefere produtos à base de gel ou creme?</label>
+                <div class="form-bloco">
+                    <label>7. Você prefere produtos à base de gel ou creme?</label>
                     <div class="radio-group">
                         <label><input type="radio" name="base_produto" value="gel"> Gel</label>
                         <label><input type="radio" name="base_produto" value="creme"> Creme</label>
@@ -82,64 +86,44 @@
                     </div>
                 </div>
 
-                <div class="form-block">
-    <label>7. Deseja realizar um escaneamento facial com IA para um diagnóstico mais preciso? (Opcional)</label>
-    <div class="radio-group" style="margin-bottom: 15px;">
-        <label>
-            <input type="radio" name="quer_escanear" value="sim" id="scan-sim" onclick="toggleUploadField()"> Sim, quero escanear minha pele
-        </label>
-        <label>
-            <input type="radio" name="quer_escanear" value="nao" id="scan-nao" value="nao" checked onclick="toggleUploadField()"> Não, apenas responder o questionário
-        </label>
-    </div>
+                <form method="POST" action="{% url 'questionario' %}" enctype="multipart/form-data" class="questionario-form">
+                    <div class="form-bloco">
+                        <label>8. Deseja realizar um escaneamento facial com IA para uma analise mais precisa? (Opcional)</label>
+                        <div class="radio-group" style="margin-bottom: 15px;">
+                            <label><input type="radio" name="quer_escanear" value="sim" id="scan-sim" onclick="toggleUploadField()"> Sim, quero escanear minha pele</label>
+                            <label><input type="radio" name="quer_escanear" value="nao" id="scan-nao" checked onclick="toggleUploadField()"> Não, apenas responder o questionário</label>
+                            {% if value="sim" %}
+                            <p class="termo-scanner">Ao continuar, você concorda com nossos <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.</p>
+                            {% else %}
+                            // nao sei oq colocar aqui, mas tem q ter algo pra n dar erro
+                            <p>segue filho</p>
+                            {% endif %}
+                        </div>
 
-    <div id="bloco-upload-foto" style="display: none; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; background-color: #f9f9f9;">
-        <label style="font-size: 0.95rem; color: #555;">Envie uma foto clara do seu rosto de frente:</label>
-        <input type="file" name="foto_rosto" accept="image/*" id="input-foto">
-    </div>
-</div>
+                        <div id="bloco-upload-foto" style="display: none; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; background-color: #f9f9f9;">
+                            <label style="font-size: 0.95rem; color: #59465f;">Envie uma foto clara do seu rosto de frente:</label>
+                            <input type="file" name="foto_rosto" accept="image/*" id="input-foto">
+                        </div>
+                    </div>
 
-<button type="submit" class="btn">Salvar Perfil e Ver Resultados</button>
+                    <script>
+                    function toggleUploadField() {
+                        const scanSim = document.getElementById('scan-sim').checked;
+                        const blocoUpload = document.getElementById('bloco-upload-foto');
+                        const inputFoto = document.getElementById('input-foto');
 
-<script> // Função responsável por ocultar ou exibir o campo de envio de arquivo (foto)
-function toggleUploadField() {
-    // Armazena se o botão de rádio "Sim" está selecionado (retorna verdadeiro ou falso)
-    const scanSim = document.getElementById('scan-sim').checked;
-    const blocoUpload = document.getElementById('bloco-upload-foto');
-    const inputFoto = document.getElementById('input-foto');
+                        if (scanSim) {
+                            blocoUpload.style.display = 'block';
+                            inputFoto.required = true;
+                        } else {
+                            blocoUpload.style.display = 'none';
+                            inputFoto.required = false;
+                            inputFoto.value = '';
+                        }
+                    }
+                    </script>
 
-    if (scanSim) {
-        // Se selecionou "Sim", torna a caixinha de upload visível na tela
-        blocoUpload.style.display = 'block';
-        // Torna o preenchimento e escolha do arquivo de imagem obrigatório
-        inputFoto.required = true; // Torna a foto obrigatória SE ele escolheu sim
-    } else {
-        // Se selecionou "Não", oculta o bloco de upload da visão do usuário
-        blocoUpload.style.display = 'none';
-        // Remove a obrigatoriedade do arquivo para permitir o envio do formulário limpo
-        inputFoto.required = false;
-        // Limpa qualquer arquivo que o usuário tenha selecionado antes de mudar de ideia
-        inputFoto.value = ''; // Limpa o arquivo caso mude de ideia
-    }
-}
-
-// Altera o texto do botão ao enviar para o usuário saber que a IA está processando
-document.querySelector('.questionnaire-form').addEventListener('submit', function(e) {
-    const scanSim = document.getElementById('scan-sim').checked;
-    const botao = document.querySelector('.btn');
-    
-    if (scanSim) {
-        botao.innerText = 'Analisando sua pele com IA... Por favor, aguarde.';
-        // Não desative o botão imediatamente com .disabled = true no Django tradicional 
-        // caso use validações nativas do navegador que possam travar o envio.
-
-        // Altera visualmente o texto do botão para dar feedback de carregamento, 
-        // já que o processamento da YouCam API pode demorar alguns segundos.
-    } else {
-        botao.innerText = 'Salvando perfil...';
-    }
-});
-</script>
+                <button type="submit" class="btn">Salvar Perfil e Ver Resultados</button>
             </form>
         </div>
     </main>

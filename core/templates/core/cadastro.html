@@ -1,118 +1,129 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastrar | LUME Skin</title>
+    <title>LUME Skin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/style.css' %}?v=2">
 </head>
-<body class="app-body">
+<body class="body">
 
-<div class="skin-container">
-    <div class="brand-section">
+<div class="conteiner-texto">
+    <div class="secao-texto">
         <div class="logo-area">
-            <span class="logo-icon"><i class="fa-solid fa-face-smile-wink"></i></span>
-            <span class="logo-text">LUME Skin</span>
+            <span class="logo-icon"><i class="fa-brands fa-bluesky"></i></span>
+            <span class="logo-texto">LUME Skin</span>
         </div>
         
-        <h1 class="main-title">Sua jornada para uma <span class="highlight">pele perfeita</span> começa aqui.</h1>
-        <p class="subtitle">Análise inteligente por IA, recomendações personalizadas e monitoramento contínuo para o seu skincare ideal.</p>
+        <h1 class="main-titulo">Sua jornada para uma <span class="highlight">pele bem cuidada</span> começa aqui.</h1>
+        <p class="subtitulo">Análise inteligente por IA, recomendações personalizadas e monitoramento contínuo para o seu skincare.</p>
         
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon orange-bg"><i class="fa-solid fa-expand"></i></div>
-                <div class="feature-text">
+        <div class="cards-conteiner">
+            <div class="card-scanner">
+                <div class="icone-scanner"><i class="fa-solid fa-expand"></i></div>
+                <div class="icone-texto">
                     <strong>Scanner de IA</strong>
-                    <p>Análise facial com pontuação de saúde</p>
+                    <p>Análise facial com pontuação</p>
                 </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon orange-bg"><i class="fa-solid fa-bullseye"></i></div>
-                <div class="feature-text">
+            <div class="card-metas">
+                <div class="icone-metas"><i class="fa-solid fa-bullseye"></i></div>
+                <div class="icone-texto">
                     <strong>Metas Personalizadas</strong>
-                    <p>Cronograma de cuidados e índice UV em tempo real</p>
+                    <p>Cronograma de cuidados</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="auth-section">
-        <div class="auth-card">
-            <div class="tabs-container">
-                <button class="tab-btn" data-target="login-form">Login</button>
-                <button class="tab-btn active" data-target="register-form">Criar Conta</button>
+    <div class="secao-autenticacao">
+        <div class="card-autenticacao">
+            <div class="conteiner-login-cadastro">
+                <button class="tab-btn {% if erro %}active{% endif %}" data-target="login-form">Login</button>
+                <button class="tab-btn {% if not erro %}active{% endif %}" data-target="cadastro-form">Criar Conta</button>
             </div>
 
-     <div class="form-switch">
-    <form method="POST" action="{% url 'login' %}" class="login-form hide" id="login-form">
+     <div class="form-login">
+    <form method="POST" action="{% url 'login' %}" class="login-form {% if not erro %}hide{% endif %}" id="login-form">
         {% csrf_token %}
-        <h2 class="form-title">Bem-vindo de volta</h2>
-        <p class="form-subtitle">Acesse sua conta para continuar sua jornada.</p>
-        
-        <div class="input-group">
+        <h2 class="form-titulo">Bem-vindo de volta</h2>
+        <p class="form-subtitulo">Acesse sua conta para continuar sua jornada.</p>
+
+        {% if erro %}
+        <p class="form-erro">{{ erro }}</p>
+        {% endif %}
+
+        <div class="input-caixa">
             <label>E-mail</label>
-            <div class="input-wrapper">
+            <div class="caixa-texto">
                 <i class="fa-regular fa-envelope input-icon"></i>
-                <input type="email" name="username" placeholder="seu@email.com" required>
+                <input type="email" name="email" placeholder="seu@email.com" required>            
             </div>
         </div>
-        <div class="input-group">
+        <div class="input-caixa">
             <label>Senha</label>
-            <div class="input-wrapper">
+            <div class="caixa-texto">
                 <i class="fa-solid fa-lock input-icon"></i>
-                <input type="password" name="password" placeholder="••••••••" required>
+                <input type="password" name="senha" placeholder="••••••••" required>               
             </div>
         </div>
-        <button type="submit" class="btn-primary">Entrar →</button>
+        <button type="submit" class="botao">Entrar</button>
     </form>
 
-    <form method="POST" action="{% url 'cadastro_view' %}" class="register-form" id="register-form">
+    <form method="POST" action="{% url 'cadastro_view' %}" class="register-form {% if erro %}hide{% endif %}" id="cadastro-form">
         {% csrf_token %}
-        <h2 class="form-title">Crie sua conta</h2>
-        <p class="form-subtitle">Cadastre-se para começar sua jornada de skincare inteligente.</p>
+        <h2 class="form-titulo">Crie sua conta</h2>
+        <p class="form-subtitulo">Cadastre-se para começar sua jornada de skincare inteligente.</p>
     
-        <div class="input-group">
-            <label>Nome Completo</label>
-            <div class="input-wrapper">
+        <div class="input-caixa">
+            <label>Nome</label>
+            <div class="caixa-texto">
                 <i class="fa-solid fa-user input-icon"></i>
-                <input type="text" name="nome" placeholder="Seu nome completo" required>
+                <input type="text" name="nome" placeholder="Nome" required>
             </div>
         </div>
 
-        <div class="input-group">
+        <div class="input-caixa">
+            <label>Sobrenome</label>
+            <div class="caixa-texto">
+                <i class="fa-solid fa-user input-icon"></i>
+                <input type="text" name="sobrenome" placeholder="Sobrenome" required>
+            </div>
+        </div>
+
+        <div class="input-caixa">
             <label>E-mail</label>
-            <div class="input-wrapper">
+            <div class="caixa-texto">
                 <i class="fa-regular fa-envelope input-icon"></i>
                 <input type="email" name="email" placeholder="seu@email.com" required>
             </div>
         </div>
         
-        <div class="input-group">
-            <div class="label-row">
+        <div class="input-caixa">
+            <div class="label-senha">
                 <label>Senha</label>
             </div>
-            <div class="input-wrapper">
+            <div class="caixa-texto">
                 <i class="fa-solid fa-lock input-icon"></i>
                 <input type="password" name="senha" placeholder="••••••••" required>
             </div>
         </div>
         
-        <button type="submit" class="btn-primary">Cadastrar e Iniciar &nbsp; <i class="fa-solid fa-arrow-right"></i></button>
+        <button type="submit" class="botao">Cadastrar e Iniciar "&nbsp;</button>
     </form> 
 </div>
         
-            <p class="terms-text">
+            <p class="terms-text"> // tem que fazer os termos
                 Ao continuar, você concorda com nossos <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.
             </p>
         </div>
     </div>
 </div>
 
-<script>
-// Alterna visibilidade entre login e cadastro
+<script>  //javascript (odeio essa prr)
+// alterna entre login e cadastro
 document.addEventListener('DOMContentLoaded', function(){
     const tabs = document.querySelectorAll('.tab-btn');
     tabs.forEach(btn=>{
