@@ -71,11 +71,7 @@ target/
 # Pyenv
 .python-version
 
-# virtualenv
-venv/
-ENV/
-env/
-.venv/
+
 
 # Spyder project settings
 .spyderproject
@@ -100,3 +96,10 @@ Thumbs.db
 # Ignore local virtualenv and environment files
 .env
 .env.*
+
+venv/
+__pycache__/
+*.pyc
+.env
+db.sqlite3
+staticfiles/
