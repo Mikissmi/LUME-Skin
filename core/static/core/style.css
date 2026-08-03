@@ -664,7 +664,7 @@ body.body:has(.dashboard-secao) {
     min-width: 150px;
     height: 150px;
     border-radius: 50%;
-    background: conic-gradient(#ff6a13 var(--score-fill, 0%), #edf2f7 0);
+    background: conic-gradient(rgba(164, 111, 210, 0.466), transparent 40% var(--score-fill, 0%), #edf2f7 0);
     display: flex;
     flex-direction: column;
     align-items: center;
