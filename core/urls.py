@@ -18,8 +18,12 @@ urlpatterns = [
     # Certifique-se de que a função 'dashboard_view' exista no seu views.py
     path('dashboard/', views.dashboard_view, name='dashboard'),
 
-    # Rota para a página de login
+    # Rota para a página do scanner
     path('scanner/', views.tela_scanner, name='scanner'),
     
-    
+    # Rota para a página do perfil do usuário
+    path('perfil/', views.tela_perfil, name='perfil'),
+
+    # Rota para a página dos especialistas
+    path('especialistas/', views.tela_especialistas, name='especialistas'),
 ]

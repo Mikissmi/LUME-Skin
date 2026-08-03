@@ -292,3 +292,18 @@ def tela_login(request):
 
 def tela_scanner(request):
     return render(request, 'core/scanner.html')
+
+def tela_perfil(request):
+    if request.user.is_authenticated:
+        perfil = PerfilDermatologico.objects.filter(usuario=request.user).first()
+    else:
+        perfil = None
+
+    context = {
+        'perfil': perfil,
+    }
+    return render(request, 'core/perfil.html', context)
+
+def tela_especialistas(request):
+    return render(request, 'core/especialistas.html')
+
