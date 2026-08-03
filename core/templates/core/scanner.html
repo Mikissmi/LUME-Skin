@@ -1,0 +1,17 @@
+{% extends 'core/index.html' %}
+
+{% block content %}
+    {% if perfil %}
+
+    <div class="scanner-cabecalho">
+        <h3>Scanner da pele por IA, {{ perfil.usuario.nome_usuario|default:'usuário' }}.</h3>
+
+
+    {% else %}
+
+      <div class="dashboard-cabecalho">
+        <p>Nenhum perfil encontrado. Complete o questionário para ver o seu dashboard.</p>
+    </div>
+
+   {% endif %}
+{% endblock %}

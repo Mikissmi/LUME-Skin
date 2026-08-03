@@ -765,7 +765,7 @@ body.body:has(.dashboard-secao) {
 .card.perfil h3.fototipo {
     font-size: 48px;
     font-weight: 800;
-    color: #ff6a13;
+    color: rgba(163, 113, 207, 0.466);
     line-height: 1;
     margin-bottom: 12px;
 }
@@ -983,3 +983,8 @@ body.body:has(.dashboard-secao) {
 .rotina-item.pending .status {
     border-color: #cbd5e0;
 }
+
+/* ==========================================================================
+   10. ESTILOS DA TELA DE SCANNER
+   ========================================================================== */
+
