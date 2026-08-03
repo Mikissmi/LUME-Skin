@@ -206,19 +206,12 @@ def tela_questionario(request):
 
     return render(request, 'core/questionario.html')
 
-
-def tela_sucesso(request):
-    return render(request, 'core/sucesso.html')
-
-
 def dashboard_view(request):
     if request.user.is_authenticated:
         perfil = PerfilDermatologico.objects.filter(usuario=request.user).first()
     else:
         perfil = PerfilDermatologico.objects.first()
         
-        
-
     rotina_manha = []
     rotina_noite = []
     if perfil:
@@ -296,3 +289,6 @@ def tela_login(request):
             return render(request, 'core/cadastro.html', {'erro': 'Usuário ou senha incorretos'})
             
     return render(request, 'core/login.html')
+
+def tela_scanner(request):
+    return render(request, 'core/scanner.html')

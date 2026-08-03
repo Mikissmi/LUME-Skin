@@ -765,7 +765,7 @@ body.body:has(.dashboard-secao) {
 .card.perfil h3.fototipo {
     font-size: 48px;
     font-weight: 800;
-    color: rgba(163, 113, 207, 0.466);
+    color: #735bac;
     line-height: 1;
     margin-bottom: 12px;
 }
