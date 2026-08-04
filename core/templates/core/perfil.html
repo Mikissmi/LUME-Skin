@@ -1,0 +1,27 @@
+{% extends 'core/index.html' %}
+
+{% block content %}
+    {% if perfil %}
+    <div class="card-perfil">
+    <div class="perfil-nome">
+            <h3>Olá, {{ perfil.usuario.nome_usuario|default:'usuário' }}.</h3>
+        </div>
+        <div class="perfil-email">
+            <p><strong>Email:</strong> {{ perfil.usuario.email }}</p>
+        </div>
+            <div class="perfil-info">
+            <div class="perfil-detalhes">
+                <p><strong>Objetivo:</strong> {{ perfil.objetivo|default:'Melhorar a pele' }}</p>
+                <p><strong>Tipo de Pele:</strong> {{ perfil.tipo_pele|capfirst }}</p>
+                <p><strong>Preferência de Produto:</strong> {{ perfil.preferencia_produto|capfirst }}</p>
+            </div>
+    
+    <div class="config">
+        <a href="{% url 'core:editar_perfil' %}" class="btn btn-config">Editar Perfil</a>
+        
+    </div>
+    </div>
+
+    {% else %}
+        <p>Perfil não encontrado.</p>
+    {% endif %}

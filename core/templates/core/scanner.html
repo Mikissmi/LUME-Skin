@@ -1,17 +1,286 @@
 {% extends 'core/index.html' %}
 
 {% block content %}
-    {% if perfil %}
+<div class="scanner-cabecalho">
+    <h2>Scanner de Pele por IA</h2>
+</div>
 
-    <div class="scanner-cabecalho">
-        <h3>Scanner da pele por IA, {{ perfil.usuario.nome_usuario|default:'usuário' }}.</h3>
+<div class="scanner-secao">
+    <div class="card card-camera">
+        <div class="camera-preview" id="camera-preview">
+            <span class="camera-badge" id="camera-badge"><i class="fa-solid fa-circle"></i> Câmera Ativa</span>
+            <video id="video-camera" autoplay playsinline muted></video>
+            <img id="foto-capturada" alt="Foto capturada" style="display: none;">
+            <div class="guia-oval" aria-hidden="true"></div>
+        </div>
+        <canvas id="canvas-captura" style="display: none;"></canvas>
+        <input type="file" id="input-galeria" accept="image/*" style="display: none;">
 
+        <div class="camera-controles">
+            <button type="button" class="btn-controle" id="btn-galeria" title="Escolher da galeria">
+                <i class="fa-solid fa-image"></i>
+            </button>
+            <button type="button" class="btn-capturar" id="btn-capturar" title="Capturar foto" disabled>
+                <i class="fa-solid fa-camera"></i>
+            </button>
+            <button type="button" class="btn-controle" id="btn-refazer" title="Tirar outra foto">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
 
-    {% else %}
-
-      <div class="dashboard-cabecalho">
-        <p>Nenhum perfil encontrado. Complete o questionário para ver o seu dashboard.</p>
+        <p class="scanner-status" id="scanner-status"></p>
     </div>
 
-   {% endif %}
+    <div class="card card-preparacao">
+        <h3>Preparação para o Scan</h3>
+        <p>Para resultados precisos, siga as instruções abaixo antes de capturar a imagem.</p>
+
+        <div class="item-preparo">
+            <div class="icone-preparo"><i class="fa-solid fa-sun"></i></div>
+            <div>
+                <strong>Iluminação Natural</strong>
+                <span>Fique de frente para uma janela ou em ambiente bem iluminado. Evite sombras fortes.</span>
+            </div>
+        </div>
+        <div class="item-preparo">
+            <div class="icone-preparo"><i class="fa-solid fa-face-smile"></i></div>
+            <div>
+                <strong>Rosto Limpo</strong>
+                <span>Remova maquiagem e óculos. Prenda o cabelo para trás.</span>
+            </div>
+        </div>
+        <div class="item-preparo">
+            <div class="icone-preparo"><i class="fa-solid fa-arrows-to-dot"></i></div>
+            <div>
+                <strong>Posicionamento</strong>
+                <span>Alinhe seu rosto na tela e mantenha a expressão neutra.</span>
+            </div>
+        </div>
+
+        <label class="consentimento">
+            <input type="checkbox" id="consentimento-checkbox">
+            <span>Consinto com o processamento da minha imagem para análise de pele. A imagem não será armazenada após a análise. <a href="#">Termos de Privacidade</a>.</span>
+        </label>
+    </div>
+</div>
+
+<div class="resultados-cabecalho">
+    <h3>Resultados da Análise</h3>
+    <button type="button" class="btn-salvar-checkin" id="btn-salvar-checkin" disabled>
+        <i class="fa-regular fa-bookmark"></i> Salvar Check-in
+    </button>
+</div>
+
+<div class="resultados-grid" id="resultados-grid">
+    <div class="card card-mapeamento">
+        <h4>Mapeamento Facial</h4>
+        <div class="mapeamento-imagem" id="mapeamento-imagem">
+            <p class="resultado-vazio">Faça um scan pra ver o mapeamento.</p>
+        </div>
+    </div>
+
+    <div class="card card-score-geral">
+        <span class="score-geral-label">Score Geral</span>
+        <div class="circulo-score-geral" id="circulo-score-geral" style="--score-fill: 0%;">
+            <strong id="score-geral-valor">--</strong>
+            <span>/100</span>
+        </div>
+        <span class="score-geral-variacao" id="score-geral-variacao"></span>
+    </div>
+
+    <div class="card card-indicador" data-indicador="oleosidade">
+        <div class="indicador-cabecalho">
+            <strong>Oleosidade</strong>
+            <span class="badge-indicador">--</span>
+        </div>
+        <div class="barra-progresso"><div class="barra-preenchida" style="width: 0%;"></div></div>
+        <p class="indicador-descricao">Faça um scan pra ver o resultado.</p>
+    </div>
+
+    <div class="card card-indicador" data-indicador="hidratacao">
+        <div class="indicador-cabecalho">
+            <strong>Hidratação</strong>
+            <span class="badge-indicador">--</span>
+        </div>
+        <div class="barra-progresso"><div class="barra-preenchida" style="width: 0%;"></div></div>
+        <p class="indicador-descricao">Faça um scan pra ver o resultado.</p>
+    </div>
+
+    <div class="card card-indicador" data-indicador="acne_poros">
+        <div class="indicador-cabecalho">
+            <strong>Acne/Poros</strong>
+            <span class="badge-indicador">--</span>
+        </div>
+        <div class="barra-progresso"><div class="barra-preenchida" style="width: 0%;"></div></div>
+        <p class="indicador-descricao">Faça um scan pra ver o resultado.</p>
+    </div>
+
+    <div class="card card-indicador" data-indicador="textura">
+        <div class="indicador-cabecalho">
+            <strong>Textura</strong>
+            <span class="badge-indicador">--</span>
+        </div>
+        <div class="barra-progresso"><div class="barra-preenchida" style="width: 0%;"></div></div>
+        <p class="indicador-descricao">Faça um scan pra ver o resultado.</p>
+    </div>
+
+    <div class="card card-indicador" data-indicador="manchas">
+        <div class="indicador-cabecalho">
+            <strong>Manchas</strong>
+            <span class="badge-indicador">--</span>
+        </div>
+        <div class="barra-progresso"><div class="barra-preenchida" style="width: 0%;"></div></div>
+        <p class="indicador-descricao">Faça um scan pra ver o resultado.</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    const video = document.getElementById('video-camera');
+    const fotoCapturada = document.getElementById('foto-capturada');
+    const canvas = document.getElementById('canvas-captura');
+    const cameraBadge = document.getElementById('camera-badge');
+    const btnCapturar = document.getElementById('btn-capturar');
+    const btnGaleria = document.getElementById('btn-galeria');
+    const btnRefazer = document.getElementById('btn-refazer');
+    const inputGaleria = document.getElementById('input-galeria');
+    const consentimento = document.getElementById('consentimento-checkbox');
+    const status = document.getElementById('scanner-status');
+    const btnSalvar = document.getElementById('btn-salvar-checkin');
+
+    let streamAtivo = null;
+
+    function pegarCsrfToken() {
+        const cookie = document.cookie.split('; ').find(c => c.startsWith('csrftoken='));
+        return cookie ? cookie.split('=')[1] : '';
+    }
+
+    async function iniciarCamera() {
+        try {
+            streamAtivo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+            video.srcObject = streamAtivo;
+            video.style.display = 'block';
+            fotoCapturada.style.display = 'none';
+            cameraBadge.classList.remove('camera-badge-erro');
+            cameraBadge.innerHTML = '<i class="fa-solid fa-circle"></i> Câmera Ativa';
+            atualizarBotaoCapturar();
+        } catch (erro) {
+            cameraBadge.classList.add('camera-badge-erro');
+            cameraBadge.innerHTML = '<i class="fa-solid fa-circle"></i> Câmera indisponível';
+            status.textContent = 'Não consegui acessar sua câmera. Você ainda pode escolher uma foto da galeria.';
+        }
+    }
+
+    function atualizarBotaoCapturar() {
+        btnCapturar.disabled = !(consentimento.checked && streamAtivo);
+    }
+
+    consentimento.addEventListener('change', atualizarBotaoCapturar);
+
+    btnCapturar.addEventListener('click', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.toBlob(blob => {
+            fotoCapturada.src = URL.createObjectURL(blob);
+            fotoCapturada.style.display = 'block';
+            video.style.display = 'none';
+            enviarParaAnalise(blob);
+        }, 'image/jpeg', 0.9);
+    });
+
+    btnGaleria.addEventListener('click', () => inputGaleria.click());
+
+    inputGaleria.addEventListener('change', () => {
+        const arquivo = inputGaleria.files[0];
+        if (!arquivo) return;
+        fotoCapturada.src = URL.createObjectURL(arquivo);
+        fotoCapturada.style.display = 'block';
+        video.style.display = 'none';
+        if (!consentimento.checked) {
+            status.textContent = 'Marque a caixa de consentimento antes de analisar.';
+            return;
+        }
+        enviarParaAnalise(arquivo);
+    });
+
+    btnRefazer.addEventListener('click', () => {
+        fotoCapturada.style.display = 'none';
+        video.style.display = 'block';
+        status.textContent = '';
+        if (!streamAtivo) iniciarCamera();
+    });
+
+    function enviarParaAnalise(arquivoOuBlob) {
+        status.textContent = 'Analisando sua pele, isso pode levar alguns segundos...';
+        btnCapturar.disabled = true;
+
+        const dados = new FormData();
+        dados.append('foto', arquivoOuBlob, 'scan.jpg');
+
+        fetch('{% url "scanner_analisar" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': pegarCsrfToken() },
+            body: dados,
+        })
+            .then(resposta => resposta.json().then(json => ({ ok: resposta.ok, json })))
+            .then(({ ok, json }) => {
+                if (!ok) {
+                    status.textContent = json.erro || 'Não foi possível analisar a imagem.';
+                    atualizarBotaoCapturar();
+                    return;
+                }
+                status.textContent = 'Análise concluída!';
+                preencherResultados(json);
+                btnSalvar.disabled = false;
+                atualizarBotaoCapturar();
+            })
+            .catch(() => {
+                status.textContent = 'Erro de conexão ao analisar a imagem. Tente novamente.';
+                atualizarBotaoCapturar();
+            });
+    }
+
+    function preencherResultados(dados) {
+        const circulo = document.getElementById('circulo-score-geral');
+        circulo.style.setProperty('--score-fill', dados.score_geral + '%');
+        document.getElementById('score-geral-valor').textContent = dados.score_geral;
+
+        dados.indicadores.forEach(indicador => {
+            const card = document.querySelector(`.card-indicador[data-indicador="${indicador.chave}"]`);
+            if (!card) return;
+            card.querySelector('.badge-indicador').textContent = indicador.classificacao;
+            card.querySelector('.badge-indicador').className = 'badge-indicador badge-' + indicador.classificacao.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+            card.querySelector('.barra-preenchida').style.width = indicador.nota + '%';
+            card.querySelector('.indicador-descricao').textContent = indicador.descricao;
+        });
+
+        const mapaContainer = document.getElementById('mapeamento-imagem');
+        if (dados.mapeamento_facial) {
+            mapaContainer.innerHTML = `<img src="${dados.mapeamento_facial}" alt="Mapeamento facial">`;
+        } else {
+            mapaContainer.innerHTML = '<p class="resultado-vazio">Mapeamento não disponível para essa foto.</p>';
+        }
+    }
+
+    btnSalvar.addEventListener('click', () => {
+        btnSalvar.disabled = true;
+        fetch('{% url "scanner_salvar" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': pegarCsrfToken() },
+        })
+            .then(resposta => resposta.json().then(json => ({ ok: resposta.ok, json })))
+            .then(({ ok, json }) => {
+                status.textContent = ok ? 'Check-in salvo no seu perfil!' : (json.erro || 'Não foi possível salvar.');
+                btnSalvar.disabled = !ok;
+            })
+            .catch(() => {
+                status.textContent = 'Erro de conexão ao salvar o check-in.';
+                btnSalvar.disabled = false;
+            });
+    });
+
+    iniciarCamera();
+})();
+</script>
 {% endblock %}
