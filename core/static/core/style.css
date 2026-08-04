@@ -46,22 +46,8 @@ body.body {
     margin-bottom: 32px;
 }
 
-.logo-icon {
-    background-color: #a46fd2;
-    color: white;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    font-size: 16px;
-}
-
-.logo-texto {
-    font-weight: 700;
-    color: #0b132a;
-    font-size: 18px;
+.LUME-Skin_Logo {
+    width: 250px;
 }
 
 .main-titulo {
