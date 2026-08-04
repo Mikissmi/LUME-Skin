@@ -528,16 +528,9 @@ body.body:has(.dashboard-secao) {
     gap: 10px;
 }
 
-.sidebar .logo-icon {
-    background-color: #a46fd2;
-    color: #ffffff;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    font-size: 18px;
+
+.LUMESkin_LogoIndex {
+    width: 210px;
 }
 
 .sidebar .logo h2 {
