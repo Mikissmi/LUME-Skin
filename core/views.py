@@ -388,52 +388,30 @@ def tela_artigos(request):
             "autor": "Lima, J. C. et al.",
             "ano": 2023,
             "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "#",
+            "url_leitura": "https://rsdjournal.org/index.php/rsd/article/view/41571",
         },
         {
-            "titulo": "Promoting new concepts of skincare via skinomics",
-            "autor": "Jiang, Jia & He",
+            "titulo": "A importância da hidratação cutânea para melhor tratamento das disfunções estéticas",
+            "autor": "AMARAL, K. F. V.; SOUZA, R. B. A. A",
             "ano": 2018,
             "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "#",
+            "url_leitura": "https://idonline.emnuvens.com.br/id/article/view/2284",
         },
         {
             "titulo": "Dermatologia na Atenção Básica de Saúde",
             "autor": "Ministério da Saúde do Brasil",
             "ano": 2002,
             "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "#",
+            "url_leitura": "https://saude.gov.br/",
         },
         {
-            "titulo": "kkkkk",
-            "autor": "Ministério da Saúde",
-            "ano": 2002,
+            "titulo": "Artigo Científico",
+            "autor": "Autor(a)",
+            "ano": 2000,
             "url_capa": "https://placehold.co/120x160?text=Artigo",
             "url_leitura": "#",
-        },
-        {
-            "titulo": "kkkkk",
-            "autor": "Ministério da Saúde",
-            "ano": 2002,
-            "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "#",
-        },
-        {
-            "titulo": "kkkkk",
-            "autor": "Ministério da Saúde",
-            "ano": 2002,
-            "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "#",
-        },
-        {
-            "titulo": "kkkkk",
-            "autor": "Ministério da Saúde",
-            "ano": 2002,
-            "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "#",
-        },
+        }
     ]
-
     context = {
         "artigos": artigos_ficticios,
     }

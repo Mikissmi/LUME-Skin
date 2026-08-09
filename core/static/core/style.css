@@ -1170,18 +1170,21 @@ body.body:has(.sidebar) {
     width:45%;
     
 }
-
-.artigo-capa img,
-.placeholder-capa {
+.artigo-capa {
     width: 90px;
     height: 120px;
-    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #edf2f7;
     border-radius: 10px;
+    flex-shrink: 0;
 }
 
-.placeholder-capa {
-    background: #f8fafc;
-    border: 1px dashed #edf2f7;
+.artigo-capa svg {
+    width: 36px;
+    height: 36px;
+    color: #a0aec0;
 }
 
 .artigo-info {
