@@ -43,10 +43,8 @@ class Usuario(AbstractBaseUser):
 
 
 class PerfilDermatologico(models.Model):
-    # Conecta o perfil ao usuário criado no cadastro
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, db_column='id_usuario')
 
-    # Dados do questionário
     idade = models.IntegerField()
     TIPO_PELE_CHOICES = [
         ('oleosa', 'Oleosa'),
@@ -60,13 +58,26 @@ class PerfilDermatologico(models.Model):
     preferencia_produto = models.CharField(max_length=10, choices=[('creme', 'Creme'), ('gel', 'Gel')])
     usa_maquiagem_diariamente = models.CharField(max_length=10)
 
-    # Campos que ficam vazios por enquanto, sem o escaneamento por IA
     foto_rosto = models.CharField(max_length=500, blank=True, null=True)
     dados_ia = models.TextField(blank=True, null=True)
 
-    # Dados calculados pelo sistema posteriormente
     porcentagem_saude = models.IntegerField()
-    fototipo = models.IntegerField(blank=True, null=True)  # Escala de 1 a 6
+    fototipo = models.IntegerField(blank=True, null=True)
 
     class Meta:
         db_table = 'perfil_dermatologico'
+
+
+class Artigo(models.Model):
+    titulo = models.CharField(max_length=200)
+    autor = models.CharField(max_length=150)
+    ano = models.IntegerField()
+    resumo = models.TextField(blank=True, null=True)
+    url_capa = models.URLField(max_length=300, blank=True, null=True)
+    url_leitura = models.URLField(max_length=300)
+
+    class Meta:
+        db_table = 'artigo'
+
+    def __str__(self):
+        return self.titulo

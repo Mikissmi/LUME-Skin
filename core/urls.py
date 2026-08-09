@@ -26,4 +26,10 @@ urlpatterns = [
 
     # Rota para a página dos especialistas
     path('especialistas/', views.tela_especialistas, name='especialistas'),
+
+    # Rota para a página dos produtos recomendados
+    path('produtos/', views.tela_produtos, name='produtos'),
+
+    # Rota para a página dos artigos
+    path('artigos/', views.tela_artigos, name='artigos'),
 ]

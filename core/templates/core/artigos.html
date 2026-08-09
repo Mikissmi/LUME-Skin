@@ -1,0 +1,29 @@
+{% extends 'core/index.html' %}
+{% load static %}
+
+{% block content %}
+    <h2>Artigos científicos</h2>
+    <p class="subtitulo">Leituras confiáveissobre cuidados com a pele, selecionadas para complementar sua rotina e seus conhecimentos.</p>
+
+    <div class="artigos-lista">
+        {% for artigo in artigos %}
+            <div class="card-artigo">
+                <div class="artigo-capa">
+                    {% if artigo.url_capa %}
+                        <img src="{{ artigo.url_capa }}" alt="{{ artigo.titulo }}">
+                    {% else %}
+                        <div class="placeholder-capa"></div>
+                    {% endif %}
+                </div>
+                <div class="artigo-info">
+                    <h4>{{ artigo.titulo }}</h4>
+                    <p class="artigo-autor">{{ artigo.autor }}</p>
+                    <p class="artigo-ano">{{ artigo.ano }}</p>
+                    <a href="{{ artigo.url_leitura }}" class="btn-ler" target="_blank">Ler...</a>
+                </div>
+            </div>
+        {% empty %}
+            <p class="sem-produtos">Nenhum artigo disponível no momento.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

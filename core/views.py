@@ -307,3 +307,134 @@ def tela_perfil(request):
 def tela_especialistas(request):
     return render(request, 'core/especialistas.html')
 
+def tela_produtos(request):
+    produtos_ficticios = [
+        {
+            "nome_produto": "Gel de Limpeza Facial",
+            "descricao_produto": "Limpeza suave para pele mista",
+            "url_foto_produto": "https://www.mockupworld.co/wp-content/uploads/dynamic/2023/02/standing-cosmetic-tube-free-mockup-psd-870x0-c-default.jpg",
+            "categoria_produto": "limpeza",
+        },
+        {
+            "nome_produto": "Sérum Hidratante",
+            "descricao_produto": "Hidratação intensa com ácido hialurônico",
+            "url_foto_produto": "https://www.mockupworld.co/wp-content/uploads/dynamic/2023/06/dropper-bottle-rubber-free-mockup-psd-870x0-c-default.jpg",
+            "categoria_produto": "tratamento",
+        },
+        {
+            "nome_produto": "Protetor Solar FPS 50",
+            "descricao_produto": "Proteção UVA/UVB para uso diário",
+            "url_foto_produto": "https://images.pexels.com/photos/19049367/pexels-photo-19049367.png",
+            "categoria_produto": "protecao",
+        },
+        {
+            "nome_produto": "Tônico Facial",
+            "descricao_produto": "Equilibra o pH da pele após a limpeza",
+            "url_foto_produto": "https://images.pexels.com/photos/6800931/pexels-photo-6800931.jpeg",
+            "categoria_produto": "limpeza",
+        },
+        {
+                    "nome_produto": "Esfoliante Facial",
+                    "descricao_produto": "Remove células mortas da pele",
+                    "url_foto_produto": "https://images.pexels.com/photos/8015480/pexels-photo-8015480.jpeg",
+                    "categoria_produto": "limpeza",
+                },
+        {
+                    "nome_produto": "Sabonete Facial Purificante",
+                    "descricao_produto": "Controla oleosidade e brilho excessivo",
+                    "url_foto_produto": "https://images.pexels.com/photos/8217468/pexels-photo-8217468.jpeg",
+                    "categoria_produto": "limpeza",
+                },
+        {
+                    "nome_produto": "Óleo de Limpeza Facial",
+                    "descricao_produto": "Dissolve impurezas e protetor solar",
+                    "url_foto_produto": "https://www.mockupworld.co/wp-content/uploads/dynamic/2023/02/dropper-bottle-medicine-free-mockup-psd-870x0-c-default.jpg",
+                    "categoria_produto": "limpeza",
+                },
+     {
+                    "nome_produto": "Espuma de Limpeza Suave",
+                    "descricao_produto": "Limpa sem ressecar a pele sensível",
+                    "url_foto_produto": "https://images.pexels.com/photos/7691163/pexels-photo-7691163.jpeg",
+                    "categoria_produto": "limpeza",
+             },
+    ]
+
+    filtro = request.GET.get("categoria")
+
+    if filtro:
+        produtos_filtrados = [p for p in produtos_ficticios if p["categoria_produto"] == filtro]
+    else:
+        produtos_filtrados = produtos_ficticios
+
+    # Busca o perfil do usuário logado (relação OneToOne definida no model)
+    perfil = PerfilDermatologico.objects.filter(usuario=request.user).first()
+
+    context = {
+        "perfil": perfil,
+        "objetivo_usuario": perfil.objetivo if perfil else "não definido",
+        "produtos": produtos_filtrados,
+        "filtro_ativo": filtro,
+    }
+    return render(request, "core/produtos.html", context)
+
+from django.shortcuts import render
+from .models import Artigo
+
+def tela_artigos(request):
+    # TODO: trocar por Artigo.objects.all() quando a tabela existir de fato
+    artigos_ficticios = [
+        {
+            "titulo": "A importância do cuidado diário na saúde da pele",
+            "autor": "Lima, J. C. et al.",
+            "ano": 2023,
+            "url_capa": "https://placehold.co/120x160?text=Artigo",
+            "url_leitura": "#",
+        },
+        {
+            "titulo": "Promoting new concepts of skincare via skinomics",
+            "autor": "Jiang, Jia & He",
+            "ano": 2018,
+            "url_capa": "https://placehold.co/120x160?text=Artigo",
+            "url_leitura": "#",
+        },
+        {
+            "titulo": "Dermatologia na Atenção Básica de Saúde",
+            "autor": "Ministério da Saúde",
+            "ano": 2002,
+            "url_capa": "https://placehold.co/120x160?text=Artigo",
+            "url_leitura": "#",
+        },
+        {
+            "titulo": "kkkkk",
+            "autor": "Ministério da Saúde",
+            "ano": 2002,
+            "url_capa": "https://placehold.co/120x160?text=Artigo",
+            "url_leitura": "#",
+        },
+        {
+            "titulo": "kkkkk",
+            "autor": "Ministério da Saúde",
+            "ano": 2002,
+            "url_capa": "https://placehold.co/120x160?text=Artigo",
+            "url_leitura": "#",
+        },
+        {
+            "titulo": "kkkkk",
+            "autor": "Ministério da Saúde",
+            "ano": 2002,
+            "url_capa": "https://placehold.co/120x160?text=Artigo",
+            "url_leitura": "#",
+        },
+        {
+            "titulo": "kkkkk",
+            "autor": "Ministério da Saúde",
+            "ano": 2002,
+            "url_capa": "https://placehold.co/120x160?text=Artigo",
+            "url_leitura": "#",
+        },
+    ]
+
+    context = {
+        "artigos": artigos_ficticios,
+    }
+    return render(request, "core/artigos.html", context)

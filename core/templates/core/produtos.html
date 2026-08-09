@@ -1,0 +1,50 @@
+{% extends 'core/index.html' %}
+{% load static %}
+
+{% block content %}
+    <h2>Recomendações personalizadas</h2>
+
+    {% if perfil %}
+        <p class="subtitulo">Com base no seu perfil, aqui estão algumas recomendações de produtos para a sua rotina de cuidados com a pele.</p>
+
+        <div class="box-objetivo">
+            <p>Seu objetivo: <strong>{{ objetivo_usuario }}</strong></p>
+            <div class="botoes-refazer">
+                <a href="#" class="btn-secundario">Refazer scanner</a>
+                <a href="#" class="btn-secundario">Refazer questionário</a>
+            </div>
+        </div>
+
+        <div class="box-alerta-uv">
+            <div class="alerta-texto">
+                <span class="icone-alerta">&#9888;</span>
+                <div>
+                    <strong>Atenção: níveis de UV altos</strong>
+                    <p>Recomendação de uso de protetor solar</p>
+                </div>
+            </div>
+            <div class="filtros-rotina">
+                <a href="#" class="btn-filtro ativo">Rotina completa</a>
+                <a href="#" class="btn-filtro">Limpeza</a>
+                <a href="#" class="btn-filtro">Tratamento</a>
+                <a href="#" class="btn-filtro">Proteção</a>
+            </div>
+        </div>
+
+         <div class="produtos-grid">
+           {% for produto in produtos %}
+           <div class="card-produto">
+            <div class="produto-imagem">
+                <img src="{{ produto.url_foto_produto }}" alt="{{ produto.nome_produto }}">
+            </div>
+            <h4>{{ produto.nome_produto }}</h4>
+            <p class="produto-descricao">{{ produto.descricao_produto }}</p>
+        </div>
+    {% empty %}
+        <p class="sem-produtos">Nenhum produto encontrado.</p>
+    {% endfor %}
+</div>
+    {% else %}
+        <p class="sem-perfil">Perfil não encontrado. Por favor, complete seu perfil para receber recomendações personalizadas.</p>
+    {% endif %}
+{% endblock %}

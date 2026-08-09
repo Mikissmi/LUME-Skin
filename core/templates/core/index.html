@@ -11,13 +11,14 @@
 <body class="body">
     <aside class="sidebar">
         <div class="logo">
-             <img src="{% static 'core/LogoLUMESkinIndex.png' %}" class="LUMESkin_LogoIndex">
+             <img src="{% static 'core/images/LogoLUMESkinIndex.png' %}" class="LUMESkin_LogoIndex">
         </div>
         <nav class="menu">
-            <a href="{% url 'dashboard' %}" class="menu-item active">Dashboard</a>
+            <a href="{% url 'dashboard' %}" class="menu-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
             <a href="#" class="menu-item">Scanner de Pele por IA</a>
-            <a href="#" class="menu-item">Recomendações</a>
+            <a href="{% url 'produtos' %}" class="menu-item {% if request.resolver_match.url_name == 'produtos' %}active{% endif %}">Recomendações</a>
             <a href="#" class="menu-item">Especialistas</a>
+            <a href="{% url 'artigos' %}" class="menu-item">Artigos Científicos</a>
         </nav>
         <div class="sidebar-footer">
             <a href="#" class="menu-item"><i class="fa-jelly fa-regular fa-address-card"></i>Perfil e configurações</a>
