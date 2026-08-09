@@ -81,3 +81,16 @@ class Artigo(models.Model):
 
     def __str__(self):
         return self.titulo
+
+class Especialista(models.Model):
+    nome = models.CharField(max_length=150)
+    especialidade = models.CharField(max_length=100)  # ex: dermatologista, esteticista
+    crm = models.CharField(max_length=30, blank=True, null=True)
+    telefone_whatsapp = models.CharField(max_length=20)  # formato: 5511999999999
+    url_foto = models.URLField(max_length=300, blank=True, null=True)
+
+    class Meta:
+        db_table = 'especialista'
+
+    def __str__(self):
+        return self.nome

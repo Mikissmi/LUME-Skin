@@ -32,4 +32,5 @@ urlpatterns = [
 
     # Rota para a página dos artigos
     path('artigos/', views.tela_artigos, name='artigos'),
+
 ]

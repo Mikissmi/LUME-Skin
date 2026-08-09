@@ -1019,7 +1019,6 @@ body.body:has(.sidebar) {
 /* Alerta de UV */
 .box-alerta-uv {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     background: #ffeadf;
     border: 1px solid #ffe0ce;
@@ -1054,6 +1053,8 @@ body.body:has(.sidebar) {
 }
 
 .filtros-rotina {
+    margin-bottom: 12px;
+    margin-top: 50px;
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
@@ -1153,7 +1154,7 @@ body.body:has(.sidebar) {
     display: flex;
     flex-direction:row;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 30px;
     margin-top: 24px;
 }
 
@@ -1166,6 +1167,8 @@ body.body:has(.sidebar) {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015);
     border: 1px solid rgba(0, 0, 0, 0.02);
     align-items: center;
+    width:45%;
+    
 }
 
 .artigo-capa img,
@@ -1212,4 +1215,67 @@ body.body:has(.sidebar) {
 
 .btn-ler:hover {
     background: #8a5fc0;
+}
+
+/* ==========================================================================
+   13. ESTILOS DA TELA DE ESPECIALISTAS (mesmo modelo de produtos)
+   ========================================================================== */
+
+.especialistas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 8px;
+}
+
+.card-especialista {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 15px;
+    box-shadow: 0 5px 9px rgba(0, 0, 0, 0.06);
+    padding-bottom: 20px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-especialista:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.especialista-imagem {
+    width: 100%;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #edf2f7;
+    border-radius: 15px 15px 0 0;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.especialista-imagem img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.card-especialista h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0b132a;
+    margin-top: 14px;
+    margin-bottom: 4px;
+    padding: 0 16px;
+}
+
+.especialista-descricao {
+    font-size: 13px;
+    color: #718096;
+    line-height: 1.4;
+    padding: 0 16px;
+    margin-bottom: 12px;
 }

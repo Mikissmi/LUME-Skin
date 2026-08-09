@@ -399,7 +399,7 @@ def tela_artigos(request):
         },
         {
             "titulo": "Dermatologia na Atenção Básica de Saúde",
-            "autor": "Ministério da Saúde",
+            "autor": "Ministério da Saúde do Brasil",
             "ano": 2002,
             "url_capa": "https://placehold.co/120x160?text=Artigo",
             "url_leitura": "#",
@@ -438,3 +438,46 @@ def tela_artigos(request):
         "artigos": artigos_ficticios,
     }
     return render(request, "core/artigos.html", context)
+
+from django.shortcuts import render
+
+def tela_especialistas(request):
+    especialistas_ficticios = [
+        {
+            "nome": "Dra. Ana Beatriz",
+            "especialidade": "dermatologista",
+            "crm": "CRM 45213-RS",
+            "telefone_whatsapp": "5551999990001",
+        },
+        {
+            "nome": "Dr. Rafael Silva",
+            "especialidade": "dermatologista",
+            "crm": "CRM 38712-RS",
+            "telefone_whatsapp": "5551999990002",
+        },
+        {
+            "nome": "Dra.Camila Rodrigues",
+            "especialidade": "esteticista",
+            "crm": "CRM 51234-RS",
+            "telefone_whatsapp": "5551999990003",
+        },
+        {
+            "nome": "Dra. Luísa Souza",
+            "especialidade": "cosmetologo",
+            "crm": "CRM 51890-RS",
+            "telefone_whatsapp": "5551999990004",
+        },
+    ]
+
+    filtro = request.GET.get("especialidade")
+
+    if filtro:
+        especialistas_filtrados = [e for e in especialistas_ficticios if e["especialidade"] == filtro]
+    else:
+        especialistas_filtrados = especialistas_ficticios
+
+    context = {
+        "especialistas": especialistas_filtrados,
+        "filtro_ativo": filtro,
+    }
+    return render(request, "core/especialistas.html", context)
