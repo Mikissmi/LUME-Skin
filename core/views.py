@@ -1,12 +1,26 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.http import JsonResponse
 from django.urls import reverse
+from functools import wraps
 from .models import Usuario, PerfilDermatologico, Artigo, Especialista
 import requests
 import json
 import time
+
+
+def admin_required(view_func):
+    # substitui o @login_required nas telas de administradores: aqui o acesso
+    # nao depende de um Usuario cadastrado, so da flag de sessao setada no
+    # login com o email/senha fixos do admin (ver tela_login)
+    @wraps(view_func)
+    def view_wrapper(request, *args, **kwargs):
+        if not request.session.get('admin_logado'):
+            return redirect('login')
+        return view_func(request, *args, **kwargs)
+    return view_wrapper
 
 
 YOUCAM_URL = 'https://yce-api-01.makeupar.com/s2s/v2.1/task/skin-analysis' # link para conectar a api
@@ -282,6 +296,14 @@ def tela_login(request):
     if request.method == "POST":
         email = request.POST.get('email')
         senha = request.POST.get('senha')
+
+        # login do administrador: mesma tela/form, mas com email e senha fixos
+        # (definidos em ADMIN_LOGIN_EMAIL / ADMIN_LOGIN_SENHA) em vez de um
+        # Usuario cadastrado no banco
+        if email == settings.ADMIN_LOGIN_EMAIL and senha == settings.ADMIN_LOGIN_SENHA:
+            request.session['admin_logado'] = True
+            return redirect('administradores')
+
         usuario = authenticate(request, username=email, password=senha)
 
         if usuario is not None:
@@ -591,7 +613,7 @@ def tela_especialistas(request):
 # ÁREA ADMINISTRATIVA - CRUD de artigos e especialistas
 # ==========================================================================
 
-@login_required
+@admin_required
 def tela_administradores(request):
     context = {
         "artigos": Artigo.objects.all().order_by('-ano'),
@@ -600,7 +622,7 @@ def tela_administradores(request):
     return render(request, "core/administradores.html", context)
 
 
-@login_required
+@admin_required
 def artigo_form(request, artigo_id=None):
     # os formularios de criar/editar artigo ficam embutidos direto em
     # core/administradores.html, entao essa view so processa o POST
@@ -619,7 +641,7 @@ def artigo_form(request, artigo_id=None):
     return redirect('administradores')
 
 
-@login_required
+@admin_required
 def artigo_excluir(request, artigo_id):
     artigo = get_object_or_404(Artigo, id=artigo_id)
     if request.method == 'POST':
@@ -627,7 +649,7 @@ def artigo_excluir(request, artigo_id):
     return redirect('administradores')
 
 
-@login_required
+@admin_required
 def especialista_form(request, especialista_id=None):
     # os formularios de criar/editar especialista ficam embutidos direto em
     # core/administradores.html, entao essa view so processa o POST
@@ -645,7 +667,7 @@ def especialista_form(request, especialista_id=None):
     return redirect('administradores')
 
 
-@login_required
+@admin_required
 def especialista_excluir(request, especialista_id):
     especialista = get_object_or_404(Especialista, id=especialista_id)
     if request.method == 'POST':
