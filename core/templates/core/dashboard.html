@@ -8,7 +8,7 @@
 
     <div class="dashboard-secao">
         <div class="card card-saude">
-            <div class="circulo-saude" style="--score-fill: {{ perfil.porcentagem_saude }}%;">
+                       <div class="circulo-saude" style="--score-fill: {{ perfil.porcentagem_saude }}%; --score-color: {% if perfil.porcentagem_saude >= 85 %}#10b981{% elif perfil.porcentagem_saude >= 70 %}#0d7cb3{% elif perfil.porcentagem_saude >= 50 %}#a46fd2{% else %}#e35d6a{% endif %};">
                 <h2>{{ perfil.porcentagem_saude }}%</h2>
                 <span>Score Atual</span>
             </div>

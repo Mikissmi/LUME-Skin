@@ -92,7 +92,7 @@ body.body {
 
 .icone-scanner,
 .icone-metas {
-    background-color: #fff4ed;
+    background-color: #eeedff;
     color: #a46fd2;
     width: 38px;
     height: 38px;
@@ -644,13 +644,20 @@ body.body:has(.sidebar) {
     min-width: 150px;
     height: 150px;
     border-radius: 50%;
-    background: conic-gradient(rgba(164, 111, 210, 0.466), transparent 40% var(--score-fill, 0%), #edf2f7 0);
-    display: flex;
+    background: conic-gradient(var(--score-color, #a46fd2) var(--score-fill, 0%), #f8f8f8 0);    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    box-shadow: inset 0 0 0 16px #ffffff; /* Cria o efeito vazado do círculo */
+}
+/* Miolo branco no centro, transformando a "pizza" em anel */
+.circulo-saude::before {
+    content: '';
+    position: absolute;
+    inset: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    z-index: 1;
 }
 
 /* Ajuste interno dos textos do círculo */
@@ -1835,7 +1842,6 @@ body.body:has(.sidebar) {
     font-weight: 600;
     padding: 12px 22px;
     border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(164, 111, 210, 0.25);
     white-space: nowrap;
     transition: background-color 0.2s ease;
 }
@@ -2115,8 +2121,6 @@ body.body:has(.sidebar) {
     font-weight: 600;
     padding: 10px 18px;
     border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(164, 111, 210, 0.2);
-    transition: background-color 0.2s ease;
 }
 
 .btn-admin-novo:hover {
