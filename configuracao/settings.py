@@ -49,6 +49,16 @@ INSTALLED_APPS = [
 # usa o nosso Usuario customizado no lugar do User padrao do Django
 AUTH_USER_MODEL = 'core.Usuario'
 
+# pra onde o @login_required manda quem nao esta logado (a rota padrao do
+# Django, /accounts/login/, nao existe nesse projeto)
+LOGIN_URL = 'login'
+
+# credenciais fixas do administrador - usadas na mesma tela de login (email/senha)
+# pra liberar o painel /administradores/. nao existe cadastro pra isso, e um
+# usuario/senha pre-definidos mesmo
+ADMIN_LOGIN_EMAIL = 'admin@lumeskin.com'
+ADMIN_LOGIN_SENHA = 'lumeskin2026'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -92,7 +102,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'lumeskin',                 # Mude para 'lume' se preferir usar o outro banco
         'USER': 'root',
-        'PASSWORD': 'carol2007',       # Coloque a senha que definiu no MySQL Installer
+        'PASSWORD': 'Mimikka/0609',       # Coloque a senha que definiu no MySQL Installer
         'HOST': '127.0.0.1',                 # Mantenha exatamente entre aspas
         'PORT': '3306',                      # Mantenha exatamente entre aspas
     }

@@ -1,7 +1,9 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login as auth_login, authenticate
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from .models import Usuario, PerfilDermatologico
+from django.http import JsonResponse
+from django.urls import reverse
+from .models import Usuario, PerfilDermatologico, Artigo, Especialista
 import requests
 import json
 import time
@@ -107,8 +109,8 @@ def tela_cadastro(request):
     if request.method == "POST":
         nome = request.POST.get('nome')
         email = request.POST.get('email')
-        senha = request.POST.get('senha') 
-        
+        senha = request.POST.get('senha')
+
         # cria e salva um novo registro na tabela usuario, já com a senha criptografada
         novo_usuario = Usuario.objects.create_user(
             email=email,
@@ -119,7 +121,7 @@ def tela_cadastro(request):
         # faz o login automático e manda o usuário para a tela do questionário
         auth_login(request, novo_usuario)
         return redirect('questionario')
-        
+
         # se a requisição NÃO for POST, exibe a tela com o formulário de cadastro limpo.
     return render(request, 'core/cadastro.html')
 
@@ -211,7 +213,7 @@ def dashboard_view(request):
         perfil = PerfilDermatologico.objects.filter(usuario=request.user).first()
     else:
         perfil = PerfilDermatologico.objects.first()
-        
+
     rotina_manha = []
     rotina_noite = []
     if perfil:
@@ -281,17 +283,162 @@ def tela_login(request):
         email = request.POST.get('email')
         senha = request.POST.get('senha')
         usuario = authenticate(request, username=email, password=senha)
-        
+
         if usuario is not None:
             auth_login(request, usuario)
             return redirect('dashboard')
         else:
             return render(request, 'core/cadastro.html', {'erro': 'Usuário ou senha incorretos'})
-            
+
     return render(request, 'core/login.html')
+
+
+def tela_logout(request):
+    if request.method == "POST":
+        auth_logout(request)
+    return redirect('login')
+
+
+# ==========================================================================
+# SCANNER DE PELE POR IA - endpoints usados pelo JS da core/scanner.html
+# ==========================================================================
+
+def classificar_indicador(nota):
+    if nota >= 85:
+        return 'Ótimo'
+    if nota >= 70:
+        return 'Bom'
+    if nota >= 50:
+        return 'Regular'
+    return 'Atenção'
+
+
+DESCRICOES_INDICADOR = {
+    'oleosidade': {
+        'Ótimo': 'Oleosidade sob controle.',
+        'Bom': 'Nível de oleosidade equilibrado.',
+        'Regular': 'Zona T pode precisar de atenção.',
+        'Atenção': 'Oleosidade elevada, considere um produto de controle.',
+    },
+    'hidratacao': {
+        'Ótimo': 'Hidratação excelente.',
+        'Bom': 'Nível de hidratação adequado.',
+        'Regular': 'Pele levemente desidratada.',
+        'Atenção': 'Baixa hidratação, reforce o uso de hidratante.',
+    },
+    'acne_poros': {
+        'Ótimo': 'Poucos sinais de acne ou poros dilatados.',
+        'Bom': 'Poros e acne sob controle.',
+        'Regular': 'Alguns poros dilatados e pequenas inflamações.',
+        'Atenção': 'Sinais de acne e poros dilatados precisam de cuidado.',
+    },
+    'textura': {
+        'Ótimo': 'Textura uniforme e lisa.',
+        'Bom': 'Boa textura geral da pele.',
+        'Regular': 'Leve irregularidade na textura.',
+        'Atenção': 'Textura irregular, considere uma esfoliação leve.',
+    },
+    'manchas': {
+        'Ótimo': 'Tonalidade bem uniforme.',
+        'Bom': 'Poucas manchas visíveis.',
+        'Regular': 'Algumas manchas de sol ou idade.',
+        'Atenção': 'Manchas visíveis, reforce o uso de protetor solar.',
+    },
+}
+
+
+def montar_indicador(chave, nota):
+    nota = max(0, min(100, round(nota)))
+    classificacao = classificar_indicador(nota)
+    descricao = DESCRICOES_INDICADOR[chave][classificacao]
+    return {'chave': chave, 'nota': nota, 'classificacao': classificacao, 'descricao': descricao}
+
+
+def scanner_analisar(request):
+    # recebe a foto tirada/enviada na tela do scanner e devolve a analise em json
+    if request.method != 'POST':
+        return JsonResponse({'erro': 'Método não permitido.'}, status=405)
+
+    foto = request.FILES.get('foto')
+    if not foto:
+        return JsonResponse({'erro': 'Nenhuma imagem enviada.'}, status=400)
+
+    resultados_ia = comunicar_youcam_api(foto)
+    if not resultados_ia:
+        return JsonResponse({'erro': 'Não foi possível analisar a imagem agora. Tente novamente em instantes.'}, status=502)
+
+    nota_oleosidade = resultados_ia.get('oiliness', {}).get('score', 70)
+    nota_hidratacao = resultados_ia.get('moisture', {}).get('score', 70)
+    nota_acne = resultados_ia.get('acne', {}).get('score', 70)
+    nota_poros = resultados_ia.get('pore', {}).get('score', 70)
+    nota_textura = resultados_ia.get('texture', {}).get('score', 70)
+    nota_manchas = resultados_ia.get('age_spot', {}).get('score', 70)
+
+    indicadores = [
+        montar_indicador('oleosidade', nota_oleosidade),
+        montar_indicador('hidratacao', nota_hidratacao),
+        montar_indicador('acne_poros', (nota_acne + nota_poros) / 2),
+        montar_indicador('textura', nota_textura),
+        montar_indicador('manchas', nota_manchas),
+    ]
+
+    score_geral = round(sum(indicador['nota'] for indicador in indicadores) / len(indicadores))
+    mapeamento_facial = resultados_ia.get('overlay_image_url') or resultados_ia.get('result_image_url')
+
+    # guarda o resultado na sessão pra "Salvar Check-in" nao precisar reenviar a foto/analise inteira
+    request.session['ultimo_scan'] = {
+        'dados_ia': json.dumps(resultados_ia),
+        'foto_rosto': mapeamento_facial,
+        'porcentagem_saude': score_geral,
+    }
+
+    return JsonResponse({
+        'score_geral': score_geral,
+        'indicadores': indicadores,
+        'mapeamento_facial': mapeamento_facial,
+    })
+
+
+def scanner_salvar(request):
+    # salva o ultimo resultado de scanner (guardado na sessao) no perfil dermatologico do usuario
+    if request.method != 'POST':
+        return JsonResponse({'erro': 'Método não permitido.'}, status=405)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Você precisa estar logado para salvar o check-in.'}, status=401)
+
+    ultimo_scan = request.session.get('ultimo_scan')
+    if not ultimo_scan:
+        return JsonResponse({'erro': 'Faça um scan antes de salvar o check-in.'}, status=400)
+
+    perfil, _ = PerfilDermatologico.objects.get_or_create(
+        usuario=request.user,
+        defaults={
+            'idade': 0,
+            'tipo_pele': 'normal',
+            'objetivo': 'Melhorar a pele',
+            'preferencia_produto': 'gel',
+            'usa_maquiagem_diariamente': 'nao',
+            'porcentagem_saude': ultimo_scan['porcentagem_saude'],
+        },
+    )
+
+    perfil.dados_ia = ultimo_scan['dados_ia']
+    perfil.foto_rosto = ultimo_scan['foto_rosto']
+    perfil.porcentagem_saude = ultimo_scan['porcentagem_saude']
+    perfil.save()
+
+    del request.session['ultimo_scan']
+    return JsonResponse({'ok': True})
+
 
 def tela_scanner(request):
     return render(request, 'core/scanner.html')
+
+
+# ==========================================================================
+# PERFIL DO USUÁRIO
+# ==========================================================================
 
 def tela_perfil(request):
     if request.user.is_authenticated:
@@ -304,8 +451,47 @@ def tela_perfil(request):
     }
     return render(request, 'core/perfil.html', context)
 
-def tela_especialistas(request):
-    return render(request, 'core/especialistas.html')
+
+@login_required
+def editar_perfil(request):
+    # o formulario de edicao fica embutido direto na aba "Preferencias da Conta"
+    # de core/perfil.html, entao essa view so processa o POST e volta pra la
+    perfil = PerfilDermatologico.objects.filter(usuario=request.user).first()
+    if not perfil:
+        return redirect('questionario')
+
+    destino = f"{reverse('perfil')}?aba=conta"
+
+    if request.method != 'POST':
+        return redirect(destino)
+
+    nome_usuario = request.POST.get('nome_usuario', '').strip()
+    idade = request.POST.get('idade')
+    tipo_pele = request.POST.get('tipo_pele')
+    alergias = request.POST.get('alergias', '').strip()
+    objetivo = request.POST.get('objetivo', '').strip()
+    preferencia_produto = request.POST.get('preferencia_produto')
+    usa_maquiagem_diariamente = request.POST.get('usa_maquiagem_diariamente')
+
+    if nome_usuario:
+        request.user.nome_usuario = nome_usuario
+        request.user.save()
+
+    if idade:
+        perfil.idade = int(idade)
+    if tipo_pele in dict(PerfilDermatologico.TIPO_PELE_CHOICES):
+        perfil.tipo_pele = tipo_pele
+    perfil.alergias = alergias
+    if objetivo:
+        perfil.objetivo = objetivo
+    if preferencia_produto in ('creme', 'gel'):
+        perfil.preferencia_produto = preferencia_produto
+    if usa_maquiagem_diariamente in ('sim', 'nao'):
+        perfil.usa_maquiagem_diariamente = usa_maquiagem_diariamente
+
+    perfil.save()
+    return redirect(destino)
+
 
 def tela_produtos(request):
     produtos_ficticios = [
@@ -377,85 +563,91 @@ def tela_produtos(request):
     }
     return render(request, "core/produtos.html", context)
 
-from django.shortcuts import render
-from .models import Artigo
 
 def tela_artigos(request):
-    # TODO: trocar por Artigo.objects.all() quando a tabela existir de fato
-    artigos_ficticios = [
-        {
-            "titulo": "A importância do cuidado diário na saúde da pele",
-            "autor": "Lima, J. C. et al.",
-            "ano": 2023,
-            "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "https://rsdjournal.org/index.php/rsd/article/view/41571",
-        },
-        {
-            "titulo": "A importância da hidratação cutânea para melhor tratamento das disfunções estéticas",
-            "autor": "AMARAL, K. F. V.; SOUZA, R. B. A. A",
-            "ano": 2018,
-            "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "https://idonline.emnuvens.com.br/id/article/view/2284",
-        },
-        {
-            "titulo": "Dermatologia na Atenção Básica de Saúde",
-            "autor": "Ministério da Saúde do Brasil",
-            "ano": 2002,
-            "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "https://saude.gov.br/",
-        },
-        {
-            "titulo": "Artigo Científico",
-            "autor": "Autor(a)",
-            "ano": 2000,
-            "url_capa": "https://placehold.co/120x160?text=Artigo",
-            "url_leitura": "#",
-        }
-    ]
+    artigos = Artigo.objects.all().order_by('-ano')
     context = {
-        "artigos": artigos_ficticios,
+        "artigos": artigos,
     }
     return render(request, "core/artigos.html", context)
 
-from django.shortcuts import render
 
 def tela_especialistas(request):
-    especialistas_ficticios = [
-        {
-            "nome": "Dra. Ana Beatriz",
-            "especialidade": "dermatologista",
-            "crm": "CRM 45213-RS",
-            "telefone_whatsapp": "5551999990001",
-        },
-        {
-            "nome": "Dr. Rafael Silva",
-            "especialidade": "dermatologista",
-            "crm": "CRM 38712-RS",
-            "telefone_whatsapp": "5551999990002",
-        },
-        {
-            "nome": "Dra.Camila Rodrigues",
-            "especialidade": "esteticista",
-            "crm": "CRM 51234-RS",
-            "telefone_whatsapp": "5551999990003",
-        },
-        {
-            "nome": "Dra. Luísa Souza",
-            "especialidade": "cosmetologo",
-            "crm": "CRM 51890-RS",
-            "telefone_whatsapp": "5551999990004",
-        },
-    ]
+    especialistas = Especialista.objects.all().order_by('nome')
 
     filtro = request.GET.get("especialidade")
 
     if filtro:
-        especialistas_filtrados = [e for e in especialistas_ficticios if e["especialidade"] == filtro]
-    else:
-        especialistas_filtrados = especialistas_ficticios
+        especialistas = especialistas.filter(especialidade=filtro)
 
     context = {
-        "especialistas": especialistas_filtrados,
+        "especialistas": especialistas,
         "filtro_ativo": filtro,
     }
     return render(request, "core/especialistas.html", context)
+
+
+# ==========================================================================
+# ÁREA ADMINISTRATIVA - CRUD de artigos e especialistas
+# ==========================================================================
+
+@login_required
+def tela_administradores(request):
+    context = {
+        "artigos": Artigo.objects.all().order_by('-ano'),
+        "especialistas": Especialista.objects.all().order_by('nome'),
+    }
+    return render(request, "core/administradores.html", context)
+
+
+@login_required
+def artigo_form(request, artigo_id=None):
+    # os formularios de criar/editar artigo ficam embutidos direto em
+    # core/administradores.html, entao essa view so processa o POST
+    if request.method != 'POST':
+        return redirect('administradores')
+
+    artigo = get_object_or_404(Artigo, id=artigo_id) if artigo_id else Artigo()
+
+    artigo.titulo = request.POST.get('titulo', '').strip()
+    artigo.autor = request.POST.get('autor', '').strip()
+    artigo.ano = request.POST.get('ano') or artigo.ano
+    artigo.resumo = request.POST.get('resumo', '').strip()
+    artigo.url_capa = request.POST.get('url_capa', '').strip()
+    artigo.url_leitura = request.POST.get('url_leitura', '').strip()
+    artigo.save()
+    return redirect('administradores')
+
+
+@login_required
+def artigo_excluir(request, artigo_id):
+    artigo = get_object_or_404(Artigo, id=artigo_id)
+    if request.method == 'POST':
+        artigo.delete()
+    return redirect('administradores')
+
+
+@login_required
+def especialista_form(request, especialista_id=None):
+    # os formularios de criar/editar especialista ficam embutidos direto em
+    # core/administradores.html, entao essa view so processa o POST
+    if request.method != 'POST':
+        return redirect('administradores')
+
+    especialista = get_object_or_404(Especialista, id=especialista_id) if especialista_id else Especialista()
+
+    especialista.nome = request.POST.get('nome', '').strip()
+    especialista.especialidade = request.POST.get('especialidade', '').strip()
+    especialista.crm = request.POST.get('crm', '').strip()
+    especialista.telefone_whatsapp = request.POST.get('telefone_whatsapp', '').strip()
+    especialista.url_foto = request.POST.get('url_foto', '').strip()
+    especialista.save()
+    return redirect('administradores')
+
+
+@login_required
+def especialista_excluir(request, especialista_id):
+    especialista = get_object_or_404(Especialista, id=especialista_id)
+    if request.method == 'POST':
+        especialista.delete()
+    return redirect('administradores')

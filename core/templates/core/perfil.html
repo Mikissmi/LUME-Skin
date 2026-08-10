@@ -1,27 +1,164 @@
 {% extends 'core/index.html' %}
 
 {% block content %}
-    {% if perfil %}
-    <div class="card-perfil">
-    <div class="perfil-nome">
-            <h3>Olá, {{ perfil.usuario.nome_usuario|default:'usuário' }}.</h3>
-        </div>
-        <div class="perfil-email">
-            <p><strong>Email:</strong> {{ perfil.usuario.email }}</p>
-        </div>
-            <div class="perfil-info">
-            <div class="perfil-detalhes">
-                <p><strong>Objetivo:</strong> {{ perfil.objetivo|default:'Melhorar a pele' }}</p>
-                <p><strong>Tipo de Pele:</strong> {{ perfil.tipo_pele|capfirst }}</p>
-                <p><strong>Preferência de Produto:</strong> {{ perfil.preferencia_produto|capfirst }}</p>
-            </div>
-    
-    <div class="config">
-        <a href="{% url 'core:editar_perfil' %}" class="btn btn-config">Editar Perfil</a>
-        
-    </div>
+<div class="perfil-cabecalho">
+    <p class="perfil-breadcrumb">Perfil &rsaquo; Configurações</p>
+    <h2>Minha Conta</h2>
+</div>
+
+{% if perfil %}
+<div class="perfil-card-topo">
+    <div class="perfil-avatar">
+        {% if perfil.foto_rosto %}
+            <img src="{{ perfil.foto_rosto }}" alt="Foto de {{ perfil.usuario.nome_usuario }}">
+        {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+            </svg>
+        {% endif %}
     </div>
 
-    {% else %}
-        <p>Perfil não encontrado.</p>
-    {% endif %}
+    <div class="perfil-identificacao">
+        <h3>{{ perfil.usuario.nome_usuario|default:'Usuário' }}</h3>
+        <p class="perfil-email">{{ perfil.usuario.email }}</p>
+        <div class="perfil-badges">
+            <span class="pill-badge pill-roxo">Skin Score <strong>{{ perfil.porcentagem_saude }}/100</strong></span>
+            <span class="pill-badge pill-azul">Fototipo <strong>{{ perfil.fototipo|default:'--' }}</strong></span>
+        </div>
+    </div>
+
+    <button type="button" class="btn-perfil-editar" onclick="mudarAba('conta')">Editar Perfil</button>
+</div>
+
+<div class="perfil-layout">
+    <nav class="perfil-tabs" id="perfil-tabs">
+        <button type="button" class="perfil-tab active" data-tab="pele">Inteligência de Pele</button>
+        <button type="button" class="perfil-tab" data-tab="conta">Preferências da Conta</button>
+    </nav>
+
+    <div class="perfil-conteudo">
+        <div class="perfil-painel" data-painel="pele">
+            <h3>Inteligência de Pele</h3>
+
+            <div class="perfil-item">
+                <div>
+                    <span class="perfil-item-label">Tipo de Pele</span>
+                    <p>Definido como <strong>{{ perfil.tipo_pele|capfirst }}</strong>.</p>
+                </div>
+                <a href="{% url 'questionario' %}" class="btn-perfil-secundario">Refazer Teste</a>
+            </div>
+
+            <div class="perfil-item">
+                <div>
+                    <span class="perfil-item-label">Objetivo Principal</span>
+                    <span class="tag-objetivo">{{ perfil.objetivo|default:'Melhorar a pele' }}</span>
+                </div>
+                <button type="button" class="btn-perfil-secundario" onclick="mudarAba('conta')">Editar</button>
+            </div>
+
+            <div class="perfil-item">
+                <div>
+                    <span class="perfil-item-label">Preferência de Produto</span>
+                    <p>{{ perfil.preferencia_produto|capfirst }}{% if perfil.alergias %} · Alergias: {{ perfil.alergias }}{% endif %}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="perfil-painel" data-painel="conta" hidden>
+            <h3>Preferências da Conta</h3>
+
+            <form method="POST" action="{% url 'editar_perfil' %}" class="perfil-form-embutido">
+                {% csrf_token %}
+
+                <div class="campo-embutido">
+                    <label>Nome</label>
+                    <input type="text" name="nome_usuario" value="{{ perfil.usuario.nome_usuario }}" required>
+                </div>
+
+                <div class="campo-embutido">
+                    <label>E-mail</label>
+                    <input type="text" value="{{ perfil.usuario.email }}" disabled>
+                </div>
+
+                <div class="campo-embutido">
+                    <label>Idade</label>
+                    <input type="number" name="idade" min="10" max="120" value="{{ perfil.idade }}" required>
+                </div>
+
+                <div class="campo-embutido">
+                    <label>Tipo de Pele</label>
+                    <select name="tipo_pele" required>
+                        <option value="oleosa" {% if perfil.tipo_pele == 'oleosa' %}selected{% endif %}>Oleosa</option>
+                        <option value="seca" {% if perfil.tipo_pele == 'seca' %}selected{% endif %}>Seca</option>
+                        <option value="mista" {% if perfil.tipo_pele == 'mista' %}selected{% endif %}>Mista</option>
+                        <option value="normal" {% if perfil.tipo_pele == 'normal' %}selected{% endif %}>Normal</option>
+                    </select>
+                </div>
+
+                <div class="campo-embutido">
+                    <label>Objetivo Principal</label>
+                    <input type="text" name="objetivo" value="{{ perfil.objetivo }}" required>
+                </div>
+
+                <div class="campo-embutido">
+                    <label>Alergias</label>
+                    <input type="text" name="alergias" value="{{ perfil.alergias|default:'' }}" placeholder="Descreva suas alergias (opcional)">
+                </div>
+
+                <div class="campo-embutido">
+                    <label>Preferência de Produto</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="preferencia_produto" value="gel" {% if perfil.preferencia_produto == 'gel' %}checked{% endif %}> Gel</label>
+                        <label><input type="radio" name="preferencia_produto" value="creme" {% if perfil.preferencia_produto == 'creme' %}checked{% endif %}> Creme</label>
+                    </div>
+                </div>
+
+                <div class="campo-embutido">
+                    <label>Usa maquiagem diariamente?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="usa_maquiagem_diariamente" value="sim" {% if perfil.usa_maquiagem_diariamente == 'sim' %}checked{% endif %}> Sim</label>
+                        <label><input type="radio" name="usa_maquiagem_diariamente" value="nao" {% if perfil.usa_maquiagem_diariamente == 'nao' %}checked{% endif %}> Não</label>
+                    </div>
+                </div>
+
+                <div class="form-acoes">
+                    <button type="submit" class="btn">Salvar Alterações</button>
+                </div>
+            </form>
+
+            <form method="POST" action="{% url 'logout' %}" class="perfil-logout">
+                {% csrf_token %}
+                <button type="submit" class="btn-perfil-sair">Sair da Conta</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    function mudarAba(nome) {
+        document.querySelectorAll('.perfil-tab').forEach(function (aba) {
+            aba.classList.toggle('active', aba.getAttribute('data-tab') === nome);
+        });
+        document.querySelectorAll('.perfil-painel').forEach(function (painel) {
+            painel.hidden = painel.getAttribute('data-painel') !== nome;
+        });
+    }
+    window.mudarAba = mudarAba;
+
+    document.querySelectorAll('.perfil-tab').forEach(function (aba) {
+        aba.addEventListener('click', function () { mudarAba(aba.getAttribute('data-tab')); });
+    });
+
+    var parametros = new URLSearchParams(window.location.search);
+    if (parametros.get('aba') === 'conta') {
+        mudarAba('conta');
+    }
+})();
+</script>
+
+{% else %}
+    <p class="sem-perfil">Perfil não encontrado. <a href="{% url 'questionario' %}">Complete o questionário</a> para configurar o seu perfil.</p>
+{% endif %}
+{% endblock %}
