@@ -10,8 +10,8 @@
         <div class="box-objetivo">
             <p>Seu objetivo: <strong>{{ objetivo_usuario }}</strong></p>
             <div class="botoes-refazer">
-                <a href="#" class="btn-secundario">Refazer scanner</a>
-                <a href="#" class="btn-secundario">Refazer questionário</a>
+                <a href="{% url 'scanner' %}" class="btn-secundario">Refazer scanner</a>
+                <a href="{% url 'questionario' %}" class="btn-secundario">Refazer questionário</a>
             </div>
         </div>
 
