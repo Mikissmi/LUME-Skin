@@ -52,11 +52,35 @@ class PerfilDermatologico(models.Model):
         ('mista', 'Mista'),
         ('normal', 'Normal'),
     ]
+
     tipo_pele = models.CharField(max_length=10, choices=TIPO_PELE_CHOICES)
     alergias = models.TextField(blank=True, null=True)
     objetivo = models.CharField(max_length=200)
     preferencia_produto = models.CharField(max_length=10, choices=[('creme', 'Creme'), ('gel', 'Gel')])
     usa_maquiagem_diariamente = models.CharField(max_length=10)
+
+    SONO_CHOICES = [
+        ('curto', '<5h'),
+        ('reduzido', '5-7h'),
+        ('adequado', '7-9h'),
+        ('longo', '>9h'),
+    ]
+    sono_horas = models.CharField(max_length=10, choices=SONO_CHOICES, default='adequado')
+
+    PROTETOR_CHOICES = [
+        (0, 'Nunca ou raramente'),
+        (1, 'Às vezes'),
+        (2, 'Todos os dias'),
+    ]
+    protetor_solar = models.IntegerField(choices=PROTETOR_CHOICES, default=1)
+
+    EXERCICIO_CHOICES = [
+        ('nunca', 'Nunca ou raramente'),
+        ('1-2x', '1-2x por semana'),
+        ('3-4x', '3-4x por semana'),
+        ('5x+', '5x ou mais por semana'),
+    ]
+    exercicio_frequencia = models.CharField(max_length=10, choices=EXERCICIO_CHOICES, default='1-2x')
 
     foto_rosto = models.CharField(max_length=500, blank=True, null=True)
     dados_ia = models.TextField(blank=True, null=True)

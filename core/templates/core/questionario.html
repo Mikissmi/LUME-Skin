@@ -29,7 +29,7 @@
                         <option value="mista">Mista (Oleosa na zona T, seca nas bochechas)</option>
                         <option value="normal">Normal (Equilibrada)</option>
                     </select>
-                    <label>2.1. Diagnosticado por um dermatologista ou uma análise pessoal?</label>
+                    <label>2.1. Foi diagnosticado por um dermatologista ou uma análise pessoal?</label>
                     <div class="radio-group">
                         <label><input type="radio" name="diagnostico" value="0"> Diagnosticado por um dermatologista</label>
                         <label><input type="radio" name="diagnostico" value="1"> Análise pessoal</label>
@@ -77,8 +77,37 @@
                     </div>
                 </div>
 
+               <div class="form-bloco">
+                 <label>7. Em média, quantas horas você dorme por noite?</label>
+                  <select name="sono_horas" required>
+                  <option value="curto">Menos de 5 horas</option>
+                  <option value="reduzido">5 a 7 horas</option>
+                  <option value="adequado">7 a 8 horas</option>
+                  <option value="longo">Mais de 9 horas</option>
+                 </select>
+             </div>
+
                 <div class="form-bloco">
-                    <label>7. Você prefere produtos à base de gel ou creme?</label>
+                    <label>8. Com que frequência você usa protetor solar no rosto?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="protetor_solar" value="0"> Nunca ou raramente</label>
+                        <label><input type="radio" name="protetor_solar" value="1"> Às vezes</label>
+                        <label><input type="radio" name="protetor_solar" value="2"> Todos os dias</label>
+                    </div>
+                </div>
+
+                  <div class="form-bloco">
+                   <label>9. Com que frequência você pratica atividade física?</label>
+                   <select name="exercicio_frequencia" required>
+                    <option value="nunca">Nunca ou raramente</option>
+                      <option value="1-2x">1 a 2 vezes por semana</option>
+                    <option value="3-4x">3 a 4 vezes por semana</option>
+                    <option value="5x+">5 ou mais vezes por semana</option>
+                  </select>
+                 </div>
+
+                   <div class="form-bloco">
+                    <label>10. Você prefere produtos à base de gel ou creme?</label>
                     <div class="radio-group">
                         <label><input type="radio" name="base_produto" value="gel"> Gel</label>
                         <label><input type="radio" name="base_produto" value="creme"> Creme</label>
@@ -87,7 +116,7 @@
                 </div>
 
                     <div class="form-bloco">
-                        <label>8. Deseja realizar um escaneamento facial com IA para uma analise mais precisa? (Opcional)</label>
+                        <label>11. Deseja realizar um escaneamento facial com IA para uma analise mais precisa? (Opcional)</label>
                         <div class="radio-group" style="margin-bottom: 15px;">
                             <label><input type="radio" name="quer_escanear" value="sim" id="scan-sim" onclick="toggleUploadField()"> Sim, quero escanear minha pele</label>
                             <label><input type="radio" name="quer_escanear" value="nao" id="scan-nao" checked onclick="toggleUploadField()"> Não, apenas responder o questionário</label>
