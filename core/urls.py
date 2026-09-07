@@ -39,6 +39,9 @@ urlpatterns = [
 
     # Rota para a página dos produtos recomendados
     path('produtos/', views.tela_produtos, name='produtos'),
+    
+    # Rota para a página de detalhes de um produto específico
+    path('produtos/<int:produto_id>/', views.produto_detalhe, name='produto_detalhe'),
 
     # Rota para a página dos artigos
     path('artigos/', views.tela_artigos, name='artigos'),

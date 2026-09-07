@@ -1,6 +1,7 @@
 import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "LUMESkin.settings")
+# O projeto Django se chama "configuracao", não "LUMESkin".
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "configuracao.settings")
 
 from django.core.wsgi import get_wsgi_application
 

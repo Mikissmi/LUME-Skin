@@ -5,10 +5,12 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.urls import reverse
 from functools import wraps
-from .models import Usuario, PerfilDermatologico, Artigo, Especialista
+from .models import Usuario, PerfilDermatologico, Artigo, Especialista, Produto
+from .recomendacao import recomendar_produtos, classificar_indicador
 import requests
 import json
 import time
+import os
 
 
 def admin_required(view_func):
@@ -23,51 +25,224 @@ def admin_required(view_func):
     return view_wrapper
 
 
-YOUCAM_URL = 'https://yce-api-01.makeupar.com/s2s/v2.1/task/skin-analysis' # link para conectar a api
-HEADERS = {
-    "Content-Type": "application/json",
-    "Authorization": "  "  # token de acesso api
-}
+YOUCAM_FILE_URL = 'https://yce-api-01.makeupar.com/s2s/v2.0/file'
+YOUCAM_URL = 'https://yce-api-01.makeupar.com/s2s/v2.1/task/skin-analysis'
 
-def comunicar_youcam_api(foto_arquivo): #envia a foto para a api e recebe o resultado
-    dados_config = {
-        "dst_actions": json.dumps([                             #pontos que a ia vai verificar e devolver
-            "acne", "eye_bag", "moisture", "pore", "redness",
-            "texture", "skin_type", "dark_circle_v2", "oiliness",
-            "radiance", "age_spot"
-        ]),
-        "miniserver_args": json.dumps({"enable_mask_overlay": True}),
-        "format": "json",       #formato de retorno
-        "pf_camera_kit": "False"
+
+def _youcam_headers():
+    """Headers da YouCam. A chave fica no .env, nunca no código."""
+    api_key = os.getenv('YOUCAM_API_KEY') or getattr(settings, 'YOUCAM_API_KEY', '')
+    if not api_key:
+        raise RuntimeError('YOUCAM_API_KEY não foi configurada no arquivo .env.')
+    return {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json',
     }
 
-    files = {  #prepara a foto para envio
-        'src_file': (foto_arquivo.name, foto_arquivo.read(), foto_arquivo.content_type)
-    }
 
+def _youcam_error(response, etapa):
+    """Mostra no terminal o erro real da YouCam para facilitar o diagnóstico."""
     try:
-        resposta = requests.post(YOUCAM_URL, headers=HEADERS, data=dados_config, files=files, timeout=15)
-        if not resposta.ok:
+        detalhe = response.json()
+    except ValueError:
+        detalhe = response.text
+    print(f'[YouCam] {etapa} - HTTP {response.status_code}: {detalhe}')
+
+
+def _extract_url(value):
+    """Procura uma URL de imagem em qualquer nível do JSON retornado."""
+    if isinstance(value, dict):
+        for key in ('overlay_image_url', 'result_image_url', 'url', 'image_url', 'download_url'):
+            candidate = value.get(key)
+            if isinstance(candidate, str) and candidate.startswith(('http://', 'https://')):
+                return candidate
+        for item in value.values():
+            found = _extract_url(item)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for item in value:
+            found = _extract_url(item)
+            if found:
+                return found
+    return None
+
+
+def _extract_score(value, key):
+    """Procura o score de um indicador mesmo que a YouCam o aninhe no JSON."""
+    if isinstance(value, dict):
+        if key in value:
+            item = value[key]
+            if isinstance(item, dict):
+                for score_key in ('score', 'value', 'severity'):
+                    score = item.get(score_key)
+                    if isinstance(score, (int, float)):
+                        return float(score)
+            elif isinstance(item, (int, float)):
+                return float(item)
+        for item in value.values():
+            found = _extract_score(item, key)
+            if found is not None:
+                return found
+    elif isinstance(value, list):
+        for item in value:
+            found = _extract_score(item, key)
+            if found is not None:
+                return found
+    return None
+
+
+def comunicar_youcam_api(foto_arquivo):
+    """
+    Envia uma imagem local para a YouCam usando o fluxo oficial atual:
+    1) File API -> recebe file_id + URL assinada;
+    2) PUT da imagem na URL assinada;
+    3) cria a tarefa Skin Analysis v2.1 usando src_file_id;
+    4) faz polling até success/error.
+    """
+    try:
+        headers = _youcam_headers()
+
+        # Lê a imagem uma única vez e mantém os bytes disponíveis para o PUT.
+        foto_arquivo.seek(0)
+        conteudo = foto_arquivo.read()
+        if not conteudo:
+            print('[YouCam] A imagem recebida está vazia.')
             return None
 
-        task_id = resposta.json().get('data', {}).get('task_id')
+        content_type = foto_arquivo.content_type or 'image/jpeg'
+        if content_type == 'image/jpg':
+            content_type = 'image/jpeg'
+
+        # 1. Solicita URL de upload e file_id.
+        file_payload = {
+            'files': [{
+                'content_type': content_type,
+                'file_name': foto_arquivo.name or 'scan.jpg',
+                'file_size': len(conteudo),
+            }]
+        }
+
+        resposta_file = requests.post(
+            YOUCAM_FILE_URL,
+            headers=headers,
+            json=file_payload,
+            timeout=30,
+        )
+
+        if not resposta_file.ok:
+            _youcam_error(resposta_file, 'File API')
+            return None
+
+        file_data = resposta_file.json().get('data', {}).get('files', [])
+        if not file_data:
+            print(f'[YouCam] File API não retornou files: {resposta_file.text}')
+            return None
+
+        file_info = file_data[0]
+        file_id = file_info.get('file_id')
+        requests_info = file_info.get('requests') or []
+        upload_request = next((item for item in requests_info if item.get('method', 'PUT').upper() == 'PUT'), None)
+        upload_url = upload_request.get('url') if upload_request else None
+
+        if not file_id or not upload_url:
+            print(f'[YouCam] File API não retornou file_id/upload URL: {file_info}')
+            return None
+
+        # 2. Envia a imagem para a URL assinada.
+        upload_headers = dict(upload_request.get('headers') or {})
+        upload_headers['Content-Type'] = content_type
+        upload_headers['Content-Length'] = str(len(conteudo))
+
+        resposta_upload = requests.put(
+            upload_url,
+            headers=upload_headers,
+            data=conteudo,
+            timeout=60,
+        )
+
+        if not resposta_upload.ok:
+            _youcam_error(resposta_upload, 'Upload da imagem')
+            return None
+
+        # 3. Cria a tarefa de análise.
+        # Usamos apenas recursos SD para manter compatibilidade com o formato
+        # de dados que o frontend atual já espera.
+        task_payload = {
+            'src_file_id': file_id,
+            'dst_actions': [
+                'acne',
+                'skin_type',
+            ],
+            'miniserver_args': {
+                'enable_mask_overlay': True,
+            },
+            'format': 'json',
+            'pf_camera_kit': False,
+        }
+
+        resposta_task = requests.post(
+            YOUCAM_URL,
+            headers=headers,
+            json=task_payload,
+            timeout=30,
+        )
+
+        if not resposta_task.ok:
+            _youcam_error(resposta_task, 'Criação da tarefa Skin Analysis')
+            return None
+
+        task_id = resposta_task.json().get('data', {}).get('task_id')
         if not task_id:
+            print(f'[YouCam] Tarefa criada sem task_id: {resposta_task.text}')
             return None
 
-        for _ in range(15):
+        # 4. Consulta o resultado. A API é assíncrona.
+        for tentativa in range(30):
             time.sleep(2)
-            checagem = requests.get(f"{YOUCAM_URL}/{task_id}", headers=HEADERS, timeout=10)
 
-            if checagem.ok:
-                payload = checagem.json()
-                status = payload.get('data', {}).get('task_status')
+            checagem = requests.get(
+                f'{YOUCAM_URL}/{task_id}',
+                headers=headers,
+                timeout=20,
+            )
 
-                if status == 'success':
-                    return payload.get('data', {}).get('results')
-                elif status == 'error':
-                    break
-    except Exception as e:
-        print(f"[Erro YouCam API]: {e}")
+            if not checagem.ok:
+                _youcam_error(checagem, f'Consulta da tarefa (tentativa {tentativa + 1})')
+                continue
+
+            payload = checagem.json()
+            data = payload.get('data', {})
+            status = data.get('task_status')
+
+            print(f'[YouCam] tarefa={task_id} status={status}')
+
+            if status == 'success':
+                resultados = data.get('results')
+                if not resultados:
+                    print(f'[YouCam] Tarefa concluída, mas sem results: {payload}')
+                    return None
+
+                # Guarda a URL do resultado, caso exista, para o mapeamento facial.
+                if isinstance(resultados, dict):
+                    resultado_url = _extract_url(resultados)
+                    if resultado_url and 'result_image_url' not in resultados:
+                        resultados['result_image_url'] = resultado_url
+
+                return resultados
+
+            if status == 'error':
+                print(f'[YouCam] Tarefa terminou com erro: {payload}')
+                return None
+
+        print('[YouCam] Tempo limite aguardando o resultado da análise.')
+
+    except requests.RequestException as exc:
+        print(f'[Erro de conexão YouCam API]: {exc}')
+    except (ValueError, KeyError, TypeError) as exc:
+        print(f'[Erro ao interpretar resposta YouCam API]: {exc}')
+    except Exception as exc:
+        print(f'[Erro YouCam API]: {exc}')
 
     return None
 
@@ -325,16 +500,6 @@ def tela_logout(request):
 # SCANNER DE PELE POR IA - endpoints usados pelo JS da core/scanner.html
 # ==========================================================================
 
-def classificar_indicador(nota):
-    if nota >= 85:
-        return 'Ótimo'
-    if nota >= 70:
-        return 'Bom'
-    if nota >= 50:
-        return 'Regular'
-    return 'Atenção'
-
-
 DESCRICOES_INDICADOR = {
     'oleosidade': {
         'Ótimo': 'Oleosidade sob controle.',
@@ -389,12 +554,12 @@ def scanner_analisar(request):
     if not resultados_ia:
         return JsonResponse({'erro': 'Não foi possível analisar a imagem agora. Tente novamente em instantes.'}, status=502)
 
-    nota_oleosidade = resultados_ia.get('oiliness', {}).get('score', 70)
-    nota_hidratacao = resultados_ia.get('moisture', {}).get('score', 70)
-    nota_acne = resultados_ia.get('acne', {}).get('score', 70)
-    nota_poros = resultados_ia.get('pore', {}).get('score', 70)
-    nota_textura = resultados_ia.get('texture', {}).get('score', 70)
-    nota_manchas = resultados_ia.get('age_spot', {}).get('score', 70)
+    nota_oleosidade = _extract_score(resultados_ia, 'oiliness') or 70
+    nota_hidratacao = _extract_score(resultados_ia, 'moisture') or 70
+    nota_acne = _extract_score(resultados_ia, 'acne') or 70
+    nota_poros = _extract_score(resultados_ia, 'pore') or 70
+    nota_textura = _extract_score(resultados_ia, 'texture') or 70
+    nota_manchas = _extract_score(resultados_ia, 'age_spot') or 70
 
     indicadores = [
         montar_indicador('oleosidade', nota_oleosidade),
@@ -515,72 +680,27 @@ def editar_perfil(request):
     return redirect(destino)
 
 
+CATEGORIA_BUCKET = {
+    'limpeza': {'Limpeza', 'Água Micelar', 'Tônico', 'Esfoliante'},
+    'tratamento': {'Sérum', 'Hidratante', 'Máscara Facial', 'Óleo Facial', 'Contorno de Olhos'},
+    'protecao': {'Protetor Solar'},
+}
+
+
 def tela_produtos(request):
-    produtos_ficticios = [
-        {
-            "nome_produto": "Gel de Limpeza Facial",
-            "descricao_produto": "Limpeza suave para pele mista",
-            "url_foto_produto": "https://www.mockupworld.co/wp-content/uploads/dynamic/2023/02/standing-cosmetic-tube-free-mockup-psd-870x0-c-default.jpg",
-            "categoria_produto": "limpeza",
-        },
-        {
-            "nome_produto": "Sérum Hidratante",
-            "descricao_produto": "Hidratação intensa com ácido hialurônico",
-            "url_foto_produto": "https://www.mockupworld.co/wp-content/uploads/dynamic/2023/06/dropper-bottle-rubber-free-mockup-psd-870x0-c-default.jpg",
-            "categoria_produto": "tratamento",
-        },
-        {
-            "nome_produto": "Protetor Solar FPS 50",
-            "descricao_produto": "Proteção UVA/UVB para uso diário",
-            "url_foto_produto": "https://images.pexels.com/photos/19049367/pexels-photo-19049367.png",
-            "categoria_produto": "protecao",
-        },
-        {
-            "nome_produto": "Tônico Facial",
-            "descricao_produto": "Equilibra o pH da pele após a limpeza",
-            "url_foto_produto": "https://images.pexels.com/photos/6800931/pexels-photo-6800931.jpeg",
-            "categoria_produto": "limpeza",
-        },
-        {
-                    "nome_produto": "Esfoliante Facial",
-                    "descricao_produto": "Remove células mortas da pele",
-                    "url_foto_produto": "https://images.pexels.com/photos/8015480/pexels-photo-8015480.jpeg",
-                    "categoria_produto": "limpeza",
-                },
-        {
-                    "nome_produto": "Sabonete Facial Purificante",
-                    "descricao_produto": "Controla oleosidade e brilho excessivo",
-                    "url_foto_produto": "https://images.pexels.com/photos/8217468/pexels-photo-8217468.jpeg",
-                    "categoria_produto": "limpeza",
-                },
-        {
-                    "nome_produto": "Óleo de Limpeza Facial",
-                    "descricao_produto": "Dissolve impurezas e protetor solar",
-                    "url_foto_produto": "https://www.mockupworld.co/wp-content/uploads/dynamic/2023/02/dropper-bottle-medicine-free-mockup-psd-870x0-c-default.jpg",
-                    "categoria_produto": "limpeza",
-                },
-     {
-                    "nome_produto": "Espuma de Limpeza Suave",
-                    "descricao_produto": "Limpa sem ressecar a pele sensível",
-                    "url_foto_produto": "https://images.pexels.com/photos/7691163/pexels-photo-7691163.jpeg",
-                    "categoria_produto": "limpeza",
-             },
-    ]
+    perfil = PerfilDermatologico.objects.filter(usuario=request.user).first()
+
+    produtos = recomendar_produtos(perfil)
 
     filtro = request.GET.get("categoria")
-
     if filtro:
-        produtos_filtrados = [p for p in produtos_ficticios if p["categoria_produto"] == filtro]
-    else:
-        produtos_filtrados = produtos_ficticios
-
-    # Busca o perfil do usuário logado (relação OneToOne definida no model)
-    perfil = PerfilDermatologico.objects.filter(usuario=request.user).first()
+        categorias_do_filtro = CATEGORIA_BUCKET.get(filtro, set())
+        produtos = [p for p in produtos if p.categoria in categorias_do_filtro]
 
     context = {
         "perfil": perfil,
         "objetivo_usuario": perfil.objetivo if perfil else "não definido",
-        "produtos": produtos_filtrados,
+        "produtos": produtos,
         "filtro_ativo": filtro,
     }
     return render(request, "core/produtos.html", context)
@@ -673,3 +793,10 @@ def especialista_excluir(request, especialista_id):
     if request.method == 'POST':
         especialista.delete()
     return redirect('administradores')
+
+def produto_detalhe(request, produto_id):
+    produto = get_object_or_404(Produto, id=produto_id)
+    context = {
+        'produto': produto,
+    }
+    return render(request, 'core/produto_detalhe.html', context)

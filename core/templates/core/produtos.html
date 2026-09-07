@@ -34,13 +34,15 @@
 
          <div class="produtos-grid">
            {% for produto in produtos %}
+           <a href="{% url 'produto_detalhe' produto.id %}" style="text-decoration:none; color:inherit; display:block;">
            <div class="card-produto">
             <div class="produto-imagem">
-                <img src="{{ produto.url_foto_produto }}" alt="{{ produto.nome_produto }}">
+                <img src="{{ produto.imagem_url }}" alt="{{ produto.nome }}">
             </div>
-            <h4>{{ produto.nome_produto }}</h4>
-            <p class="produto-descricao">{{ produto.descricao_produto }}</p>
+            <h4>{{ produto.marca }} — {{ produto.nome }}</h4>
+            <p class="produto-descricao">{{ produto.descricao }}</p>
         </div>
+        </a>
     {% empty %}
         <p class="sem-produtos">Nenhum produto encontrado.</p>
     {% endfor %}

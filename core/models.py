@@ -120,3 +120,49 @@ class Especialista(models.Model):
         return self.nome
 
 
+class Produto(models.Model):
+    CATEGORIA_CHOICES = [(c, c) for c in [
+        'Limpeza', 'Água Micelar', 'Tônico', 'Sérum', 'Hidratante',
+        'Protetor Solar', 'Esfoliante', 'Máscara Facial', 'Óleo Facial',
+        'Contorno de Olhos',
+    ]]
+    MODO_USO_CHOICES = [(v, v) for v in ['Manhã', 'Noite', 'Manhã e Noite']]
+
+    marca = models.CharField(max_length=100)
+    nome = models.CharField(max_length=200)
+    categoria = models.CharField(max_length=30, choices=CATEGORIA_CHOICES)
+
+    # multivalorados, guardados como no CSV: "Oleosa;Mista", "Acne;Oleosidade"
+    tipo_pele = models.CharField(max_length=100)
+    preocupacao = models.CharField(max_length=255)
+
+    modo_uso = models.CharField(max_length=20, choices=MODO_USO_CHOICES)
+    ingrediente_principal = models.CharField(max_length=100)
+    fps = models.PositiveSmallIntegerField(blank=True, null=True)
+    tamanho_ml = models.PositiveIntegerField()
+
+    # Ficam em branco ate serem confirmados numa fonte real (site oficial ou
+    # loja) - nunca mostrar um preco/avaliacao fabricado como se fosse dado
+    # real. "fonte" identifica de onde veio o valor (ex: "Época Cosméticos"),
+    # exibido junto do preco/avaliacao na tela para o usuario poder conferir.
+    preco = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
+    avaliacao = models.DecimalField(max_digits=2, decimal_places=1, blank=True, null=True)
+    num_avaliacoes = models.PositiveIntegerField(blank=True, null=True)
+    fonte = models.CharField(max_length=100, blank=True)
+
+    descricao = models.TextField(blank=True)
+    imagem_url = models.URLField(max_length=300, blank=True)
+    link_produto = models.URLField(max_length=300, blank=True)
+    slug = models.SlugField(max_length=250, unique=True)
+
+    class Meta:
+        db_table = 'produto'
+
+    def __str__(self):
+        return f'{self.marca} - {self.nome}'
+
+    def tipos_pele(self):
+        return [t.strip() for t in self.tipo_pele.split(';') if t.strip()]
+
+    def preocupacoes(self):
+        return [p.strip() for p in self.preocupacao.split(';') if p.strip()]

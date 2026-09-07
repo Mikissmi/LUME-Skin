@@ -96,15 +96,21 @@ WSGI_APPLICATION = 'configuracao.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 import os
+from dotenv import load_dotenv
+
+load_dotenv(BASE_DIR / '.env')
+
+# Chave da YouCam: coloque YOUCAM_API_KEY no .env.
+YOUCAM_API_KEY = os.getenv('YOUCAM_API_KEY', '')
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'lumeskin',                 # Mude para 'lume' se preferir usar o outro banco
-        'USER': 'root',
-        'PASSWORD': 'carol2007',       # Coloque a senha que definiu no MySQL Installer
-        'HOST': '127.0.0.1',                 # Mantenha exatamente entre aspas
-        'PORT': '3306',                      # Mantenha exatamente entre aspas
+        'NAME': os.getenv('DB_NAME', 'lumeskin'),
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', '3306'),
     }
 }
 

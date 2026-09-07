@@ -1052,6 +1052,7 @@ body.body:has(.sidebar) {
     border: 2px dashed rgba(255, 255, 255, 0.6);
     border-radius: 50%;
     pointer-events: none;
+    filter: blur(5px); 
 }
 
 .camera-controles {
@@ -2265,5 +2266,125 @@ body.body:has(.sidebar) {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+    }
+}
+
+/* ==========================================================================
+   18. CARD DE PRODUTO: link clicavel + preco/avaliacao/fonte opcionais
+   ========================================================================== */
+
+.card-produto-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.produto-meta {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 0 16px;
+    flex-wrap: wrap;
+}
+
+.produto-fonte {
+    font-size: 12px;
+    color: #a0aec0;
+    margin-top: 6px;
+    padding: 0 16px;
+}
+
+.produto-fonte-vazia {
+    font-style: italic;
+}
+
+/* ==========================================================================
+   19. PÁGINA DE DETALHE DO PRODUTO
+   ========================================================================== */
+
+.produto-detalhe-layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    align-items: start;
+    margin-top: 8px;
+}
+
+.produto-detalhe-imagem {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+}
+
+.produto-detalhe-imagem img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.produto-detalhe-marca {
+    font-size: 12px;
+    font-weight: 700;
+    color: #a46fd2;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.produto-detalhe-preco {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0b132a;
+    margin: 6px 0 14px;
+}
+
+.produto-detalhe-preco-vazio {
+    font-size: 16px;
+    font-weight: 600;
+    color: #a0aec0;
+}
+
+.produto-detalhe-badges {
+    margin-bottom: 12px;
+}
+
+.produto-detalhe-fonte {
+    font-size: 12px;
+    color: #718096;
+    margin-bottom: 20px;
+}
+
+.produto-detalhe-fonte-vazia {
+    color: #a0aec0;
+    font-style: italic;
+}
+
+.produto-detalhe-descricao {
+    font-size: 14px;
+    color: #718096;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.produto-detalhe-specs {
+    border-top: 1px solid #edf2f7;
+}
+
+.produto-detalhe-cta {
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.produto-detalhe-voltar {
+    display: inline-block;
+    margin-top: 24px;
+}
+
+@media (max-width: 900px) {
+    .produto-detalhe-layout {
+        grid-template-columns: 1fr;
     }
 }
