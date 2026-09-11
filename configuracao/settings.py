@@ -101,7 +101,7 @@ from dotenv import load_dotenv
 load_dotenv(BASE_DIR / '.env')
 
 # Chave da YouCam: coloque YOUCAM_API_KEY no .env.
-YOUCAM_API_KEY = os.getenv('YOUCAM_API_KEY', '')
+YOUCAM_API_KEY = os.getenv('YOUCAM_API_KEY', 'sua_chave_aqui')
 
 DATABASES = {
     'default': {
