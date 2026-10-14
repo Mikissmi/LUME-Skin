@@ -584,6 +584,8 @@ def tela_questionario(request):
         )
         porcentagem_calculada = porcentagem_regras
 
+        redirecionar_para_scanner = False
+
         # so envia a foto para a IA com consentimento explicito (LGPD) e se o arquivo for uma imagem valida
         if quer_escanear and consentimento_foto:
             foto_usuario = request.FILES.get('foto_rosto')
@@ -591,56 +593,122 @@ def tela_questionario(request):
             if foto_usuario and _foto_valida(foto_usuario):
                 resultados_ia = comunicar_youcam_api(foto_usuario)
 
-                if resultados_ia:
-                    resultados_ia = _completar_resultados(resultados_ia)
-                    dados_ia_json = json.dumps(resultados_ia)
-                    foto_salva = _url_https(_extract_url(resultados_ia))
+                
+            if resultados_ia:
+                resultados_ia = _completar_resultados(resultados_ia)
+                dados_ia_json = json.dumps(resultados_ia)
+                foto_salva = _url_https(_extract_url(resultados_ia))
 
-                    # a ia entra com 50% do score; indicador que a youcam nao mediu e ignorado
-                    porcentagem_ia = _media_ou_none(
+        # Monta os indicadores para exibir na tela do scanner
+            indicadores = [
+                montar_indicador(
+                    'oleosidade',
+                    _extract_score(resultados_ia, 'oiliness')
+                ),
+                montar_indicador(
+                    'hidratacao',
+                    _extract_score(resultados_ia, 'moisture')
+                ),
+                montar_indicador(
+                    'acne_poros',
+                    _media_ou_none(
                         _extract_score(resultados_ia, 'acne'),
-                        _extract_score(resultados_ia, 'pore'),
-                        _extract_score(resultados_ia, 'oiliness'),
-                    )
-                    if porcentagem_ia is not None:
-                        porcentagem_calculada = round((porcentagem_ia + porcentagem_regras) / 2)
+                        _extract_score(resultados_ia, 'pore')
+                        )
+                ),
+                montar_indicador(
+                    'textura',
+                    _extract_score(resultados_ia, 'texture')
+                ),
+                montar_indicador(
+                    'manchas',
+                    _extract_score(resultados_ia, 'age_spot')
+                ),
+                ]
 
-        # salva ou atualiza o perfil no banco
-        if request.user.is_authenticated:
-            perfil, created = PerfilDermatologico.objects.get_or_create(
-                usuario=request.user,
-                defaults={
-                    'idade': idade,
-                    'tipo_pele': tipo_pele or 'normal',
-                    'alergias': alergias_salvas or '',
-                    'objetivo': objective or 'Melhorar a pele',
-                    'preferencia_produto': base_produto if base_produto in ('creme', 'gel') else 'gel',
-                    'usa_maquiagem_diariamente': usa_maquiagem,
-                    'porcentagem_saude': porcentagem_calculada,
-                    'fototipo': pontos_sol + 1,
-                    'dados_ia': dados_ia_json,
-                    'foto_rosto': foto_salva,
-                }
+            notas_disponiveis = [
+            indicador['nota']
+            for indicador in indicadores
+            if indicador['nota'] is not None
+                ]
+
+            score_geral = (
+                round(sum(notas_disponiveis) / len(notas_disponiveis))
+                if notas_disponiveis
+                else None
             )
 
-            perfil.idade = idade or perfil.idade
-            perfil.tipo_pele = tipo_pele or perfil.tipo_pele
-            perfil.alergias = alergias_salvas or perfil.alergias
-            perfil.usa_maquiagem_diariamente = usa_maquiagem
-            perfil.fototipo = pontos_sol + 1
-            perfil.objetivo = objective or perfil.objetivo
-            perfil.preferencia_produto = base_produto if base_produto in ('creme', 'gel') else perfil.preferencia_produto
-            perfil.porcentagem_saude = porcentagem_calculada
-            # so troca a analise se houve scan novo
-            if dados_ia_json:
-                perfil.dados_ia = dados_ia_json
-                perfil.foto_rosto = foto_salva
+            request.session['resultado_scanner_inicial'] = {
+                'score_geral': score_geral,
+                'indicadores': indicadores,
+                'mapeamento_facial': foto_salva,
+            }
+
+        redirecionar_para_scanner = True
+
+        # A IA entra com 50% do score;
+        # indicadores que a YouCam não mediu são ignorados
+        porcentagem_ia = _media_ou_none(
+            _extract_score(resultados_ia, 'acne'),
+            _extract_score(resultados_ia, 'pore'),
+            _extract_score(resultados_ia, 'oiliness'),
+        )
+
+        if porcentagem_ia is not None:
+            porcentagem_calculada = round(
+                (porcentagem_ia + porcentagem_regras) / 2
+            )
+
+            if porcentagem_ia is not None:
+                            porcentagem_calculada = round((porcentagem_ia + porcentagem_regras) / 2)
+
+        
+                # Salva ou atualiza o perfil no banco
+        if request.user.is_authenticated:
+            perfil, created = PerfilDermatologico.objects.get_or_create(
+            usuario=request.user,
+            defaults={
+                'idade': idade,
+                'tipo_pele': tipo_pele or 'normal',
+                'alergias': alergias_salvas or '',
+                'objetivo': objective or 'Melhorar a pele',
+                'preferencia_produto': base_produto if base_produto in ('creme', 'gel') else 'gel',
+                'usa_maquiagem_diariamente': usa_maquiagem,
+                'porcentagem_saude': porcentagem_calculada,
+                'fototipo': pontos_sol + 1,
+                'dados_ia': dados_ia_json,
+                'foto_rosto': foto_salva,
+            }
+    )
+
+        perfil.idade = idade or perfil.idade
+        perfil.tipo_pele = tipo_pele or perfil.tipo_pele
+        perfil.alergias = alergias_salvas or perfil.alergias
+        perfil.usa_maquiagem_diariamente = usa_maquiagem
+        perfil.fototipo = pontos_sol + 1
+        perfil.objetivo = objective or perfil.objetivo
+        perfil.preferencia_produto = (
+                base_produto
+                if base_produto in ('creme', 'gel')
+                else perfil.preferencia_produto
+            )
+        perfil.porcentagem_saude = porcentagem_calculada
+
+    # Só troca a análise se houve um novo scan
+        if dados_ia_json:
+            perfil.dados_ia = dados_ia_json
+            perfil.foto_rosto = foto_salva
 
             perfil.save()
 
-        return redirect('dashboard')
+    
+        # Define para onde a pessoa será direcionada
+            if redirecionar_para_scanner:
+                return redirect('scanner')
 
-    return render(request, 'core/questionario.html')
+            return redirect('dashboard')
+
+    return render(requests.request, 'core/questionario.html')
 
 
 def dashboard_view(request):
@@ -815,8 +883,15 @@ def scanner_analisar(request):
         return JsonResponse({'erro': 'Você atingiu o limite de 3 análises por hora. Tente novamente mais tarde.'}, status=429)
 
     resultados_ia = comunicar_youcam_api(foto)
+
     if not resultados_ia:
-        return JsonResponse({'erro': 'Não foi possível analisar a imagem agora. Tente novamente em instantes.'}, status=502)
+     return JsonResponse(
+        {
+            'erro': 'Não foi possível analisar a imagem agora. '
+                    'Tente novamente em instantes.'
+        },
+        status=502
+    )
     resultados_ia = _completar_resultados(resultados_ia)
 
     # sem nota fica None (nota 0 e valida)
@@ -887,8 +962,21 @@ def scanner_salvar(request):
     return JsonResponse({'ok': True})
 
 
+
 def tela_scanner(request):
-    return render(request, 'core/scanner.html')
+    resultado_inicial = request.session.pop(
+        'resultado_scanner_inicial',
+        None
+    )
+
+    return render(
+        request,
+        'core/scanner.html',
+        {
+            'resultado_inicial': resultado_inicial,
+        }
+    )
+
 
 
 # ==========================================================================

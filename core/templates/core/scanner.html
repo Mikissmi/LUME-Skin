@@ -143,6 +143,8 @@
     </div>
 </div>
 
+{{ resultado_inicial|json_script:"resultado-inicial" }}
+
 <script>
 (function() {
     const URL_ANALISAR = '{% url "scanner_analisar" %}';
@@ -550,6 +552,24 @@
         cancelarAnalise();
         pararCamera();
     });
+
+    
+    const elementoResultado = document.getElementById('resultado-inicial');
+
+    if (elementoResultado) {
+        const resultadoInicial = JSON.parse(elementoResultado.textContent);
+
+        if (resultadoInicial) {
+            preencherResultados(resultadoInicial);
+
+            dizer(
+                'Análise concluída! Score geral: ' +
+                resultadoInicial.score_geral +
+                ' de 100.'
+        );
+        }
+ }
+
 
     atualizarControles();
     iniciarCamera();
