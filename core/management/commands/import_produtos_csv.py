@@ -1,56 +1,45 @@
 import csv
-from decimal import Decimal
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 
-from core.models import Produto
+from core.models import RegraAtivos
 
 
 class Command(BaseCommand):
-    help = 'Importa produtos de skincare a partir do CSV do dataset (produtos_skincare.csv)'
+    help = 'Importa o CSV de regras (perfil -> ativos recomendados)'
 
     def add_arguments(self, parser):
         parser.add_argument('csv_path', type=str)
 
     def handle(self, *args, **options):
-        csv_path = options['csv_path']
-        criados = 0
-        atualizados = 0
-
         try:
-            arquivo = open(csv_path, encoding='utf-8')
+            # utf-8-sig remove o caractere invisível que o Excel coloca no início
+            arquivo = open(options['csv_path'], encoding='utf-8-sig', newline='')
         except FileNotFoundError:
-            raise CommandError(f'Arquivo não encontrado: {csv_path}')
+            raise CommandError(f"Arquivo não encontrado: {options['csv_path']}")
 
+        objs = []
         with arquivo:
-            leitor = csv.DictReader(arquivo)
-            for linha in leitor:
-                defaults = {
-                    'marca': linha['marca'],
-                    'nome': linha['nome'],
-                    'categoria': linha['categoria'],
-                    'tipo_pele': linha['tipo_pele'],
-                    'preocupacao': linha['preocupacao'],
-                    'modo_uso': linha['modo_uso'],
-                    'ingrediente_principal': linha['ingrediente_principal'],
-                    'fps': int(linha['fps']) if linha['fps'] else None,
-                    'tamanho_ml': int(linha['tamanho_ml']),
-                    'preco': Decimal(linha['preco_brl']) if linha['preco_brl'] else None,
-                    'avaliacao': Decimal(linha['avaliacao']) if linha['avaliacao'] else None,
-                    'num_avaliacoes': int(linha['num_avaliacoes']) if linha['num_avaliacoes'] else None,
-                    'fonte': linha.get('fonte', ''),
-                    'descricao': linha['descricao'],
-                    'imagem_url': linha['imagem_url'],
-                    'link_produto': linha['link_produto'],
-                }
-                _, criado = Produto.objects.update_or_create(
-                    slug=linha['slug'], defaults=defaults,
-                )
-                if criado:
-                    criados += 1
-                else:
-                    atualizados += 1
+            for numero, r in enumerate(csv.DictReader(arquivo), start=2):
+                try:
+                    objs.append(RegraAtivos(
+                        faixa_etaria=r['Faixa_Etária'].strip(),
+                        tipo_pele=r['Tipo_de_Pele'].strip().lower(),   # 'Normal' -> 'normal'
+                        subtipo=r['Subtipo_de_Pele'].strip(),
+                        sensivel=r['Sensibilidade'].strip() == 'Sim',
+                        preocupacao=r['Preocupação'].strip(),
+                        tipo_interno=r['Tipo_Interno'].strip(),
+                        ingredientes=r['Ingredientes'].strip(),
+                        concentracoes=r['Concentrações'].strip(),
+                        efeitos=r['Efeitos'].strip(),
+                    ))
+                except KeyError as erro:
+                    raise CommandError(f'Coluna não encontrada na linha {numero}: {erro}')
 
-        self.stdout.write(self.style.SUCCESS(
-            f'Importação concluída: {criados} criados, {atualizados} atualizados.'
-        ))
+        # só apaga as regras antigas depois de ler o arquivo inteiro sem erro
+        with transaction.atomic():
+            RegraAtivos.objects.all().delete()
+            RegraAtivos.objects.bulk_create(objs, batch_size=500)
+
+        self.stdout.write(self.style.SUCCESS(f'{len(objs)} regras importadas.'))

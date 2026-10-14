@@ -166,3 +166,26 @@ class Produto(models.Model):
 
     def preocupacoes(self):
         return [p.strip() for p in self.preocupacao.split(';') if p.strip()]
+
+class RegraAtivos(models.Model):
+    # cada linha do CSV de regras vira um registro:
+    # "para ESTE perfil e ESTA preocupação, use ESTES 3 ativos"
+    faixa_etaria = models.CharField(max_length=10)   # '14-18', '19-24', '25-36', '37-45', '45+'
+    tipo_pele = models.CharField(max_length=10)      # 'normal', 'seca', 'oleosa', 'mista'
+    subtipo = models.CharField(max_length=60)        # ainda não usado (o questionário não pergunta)
+    sensivel = models.BooleanField()                 # True quando o CSV diz 'Sim'
+    preocupacao = models.CharField(max_length=60)    # 'Acne', 'Rugas', 'Opacidade'...
+    tipo_interno = models.CharField(max_length=20)   # ainda não usado
+    ingredientes = models.CharField(max_length=200)  # 'Niacinamida + Ácido Salicílico + PCA de Zinco'
+    concentracoes = models.CharField(max_length=60)  # só referência: o código não usa esta coluna
+    efeitos = models.TextField()                     # 3 frases, na mesma ordem dos 3 ingredientes
+
+    class Meta:
+        db_table = 'regra_ativos'
+        indexes = [models.Index(fields=['faixa_etaria', 'tipo_pele', 'sensivel', 'preocupacao'])]
+
+    def lista_ingredientes(self):
+        return [i.strip() for i in self.ingredientes.split('+')]
+
+    def lista_efeitos(self):
+        return [e.strip() for e in self.efeitos.split(',')]
