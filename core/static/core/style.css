@@ -2702,3 +2702,126 @@ body.body:has(.sidebar) {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   20. CARD DO ÍNDICE UV (ao lado da rotina no dashboard)
+   ========================================================================== */
+
+.card-uv {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.card-uv h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0b132a;
+    margin-bottom: 8px;
+}
+
+.uv-valor {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.uv-valor strong {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+    color: #0b132a;
+}
+
+/* Badge do nível (mesmo visual dos badges do scanner) */
+.uv-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: #edf2f7;
+    color: #718096;
+    text-transform: capitalize;
+}
+
+.uv-badge.uv-baixo      { background: #e6f9f0; color: #10b981; }
+.uv-badge.uv-moderado   { background: #fef7dc; color: #b7791f; }
+.uv-badge.uv-alto       { background: #ffecd9; color: #dd6b20; }
+.uv-badge.uv-muito-alto { background: #fdecef; color: #e35d6a; }
+.uv-badge.uv-extremo    { background: #f3ebfc; color: #a46fd2; }
+
+/* Barra do índice: verde (baixo) -> amarelo -> laranja -> vermelho -> roxo (extremo) */
+.uv-barra {
+    position: relative;
+    height: 10px;
+    border-radius: 20px;
+    margin: 22px 0 8px;
+    background: linear-gradient(
+        90deg,
+        #10b981 0%,
+        #84cc16 25%,
+        #facc15 42%,
+        #fb923c 62%,
+        #ef4444 82%,
+        #a46fd2 100%
+    );
+}
+
+.uv-marcador {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #0b132a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transform: translate(-50%, -50%);
+    transition: left 0.6s ease;
+}
+
+.uv-marcador[hidden] {
+    display: none;
+}
+
+.uv-escala {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    color: #a0aec0;
+}
+
+.uv-descricao {
+    margin-top: 14px;
+    font-size: 13px;
+    color: #718096;
+    line-height: 1.5;
+}
+
+.uv-local {
+    font-size: 12px;
+    font-weight: 600;
+    color: #a0aec0;
+}
+
+.uv-credito {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #a0aec0;
+}
+
+.uv-credito a {
+    color: #a46fd2;
+    text-decoration: none;
+}
+
+/* Rotina + UV lado a lado: evita que o conteúdo estoure a coluna */
+.dashboard-rotina.dashboard-secao > * {
+    min-width: 0;
+}
+
+.dashboard-rotina.dashboard-secao {
+    align-items: stretch;
+}

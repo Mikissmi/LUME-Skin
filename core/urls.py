@@ -59,4 +59,6 @@ urlpatterns = [
     path('administradores/especialistas/<int:especialista_id>/editar/', views.especialista_form, name='especialista_editar'),
     path('administradores/especialistas/<int:especialista_id>/excluir/', views.especialista_excluir, name='especialista_excluir'),
 
+    # Rota para a página da openmeteo
+    path("api/uv/", views.indice_uv, name="indice_uv"),
 ]

@@ -14,6 +14,11 @@ import json
 import time
 import os
 import zipfile
+import json
+import urllib.request
+from urllib.parse import unquote
+
+from django.http import JsonResponse
 
 
 # ==========================================================================
@@ -1159,3 +1164,45 @@ def especialista_excluir(request, especialista_id):
     if request.method == 'POST':
         especialista.delete()
     return redirect('administradores')
+
+# ==========================================================================
+# ÁREA UV - 
+# ==========================================================================
+
+def indice_uv(request):
+    # O Vercel informa a localização aproximada (pelo IP) nestes cabeçalhos.
+    # Se não vierem, usa Porto Alegre como reserva.
+    meta = request.META
+    try:
+        lat = float(meta.get("HTTP_X_VERCEL_IP_LATITUDE", "-30.03"))
+        lon = float(meta.get("HTTP_X_VERCEL_IP_LONGITUDE", "-51.23"))
+    except ValueError:
+        lat, lon = -30.03, -51.23
+    cidade = unquote(meta.get("HTTP_X_VERCEL_IP_CITY", "")) or "Porto Alegre"
+
+    url = (
+        "https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat}&longitude={lon}"
+        "&current=uv_index&timezone=America/Sao_Paulo"
+    )
+
+    try:
+        with urllib.request.urlopen(url, timeout=5) as resposta:
+            dados = json.load(resposta)
+        uv = round(dados["current"]["uv_index"])
+    except Exception:
+        return JsonResponse({"erro": "indisponível"}, status=502)
+
+    # Classificação padrão da Organização Mundial da Saúde
+    if uv <= 2:
+        nivel = "baixo"
+    elif uv <= 5:
+        nivel = "moderado"
+    elif uv <= 7:
+        nivel = "alto"
+    elif uv <= 10:
+        nivel = "muito alto"
+    else:
+        nivel = "extremo"
+
+    return JsonResponse({"uv": uv, "nivel": nivel, "cidade": cidade})

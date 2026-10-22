@@ -8,7 +8,7 @@
 
     <div class="dashboard-secao">
         <div class="card card-saude">
-                       <div class="circulo-saude" style="--score-fill: {{ perfil.porcentagem_saude }}%; --score-color: {% if perfil.porcentagem_saude >= 85 %}#10b981{% elif perfil.porcentagem_saude >= 70 %}#0d7cb3{% elif perfil.porcentagem_saude >= 50 %}#a46fd2{% else %}#e35d6a{% endif %};">
+            <div class="circulo-saude" style="--score-fill: {{ perfil.porcentagem_saude }}%; --score-color: {% if perfil.porcentagem_saude >= 85 %}#10b981{% elif perfil.porcentagem_saude >= 70 %}#0d7cb3{% elif perfil.porcentagem_saude >= 50 %}#a46fd2{% else %}#e35d6a{% endif %};">
                 <h2>{{ perfil.porcentagem_saude }}%</h2>
                 <span>Score Atual</span>
             </div>
@@ -43,40 +43,67 @@
         </div>
     </div>
 
-    <div class="dashboard-rotina">
-    <div class="card card-rotina-diaria">
-        <div class="status-cabecalho">
-            <h3>Status de Hoje</h3>
-            <div class="escolha" role="tablist" aria-label="Período do dia">
-                <button class="btn ativo" data-mode="manha" role="tab" aria-selected="true">Manhã</button>
-                <button class="btn" data-mode="noite" role="tab" aria-selected="false">Noite</button>
+    <!-- Rotina (esquerda) + Índice UV (direita) -->
+    <div class="dashboard-secao dashboard-rotina">
+
+        <div class="card card-rotina-diaria">
+            <div class="status-cabecalho">
+                <h3>Status de Hoje</h3>
+                <div class="escolha" role="tablist" aria-label="Período do dia">
+                    <button class="btn ativo" data-mode="manha" role="tab" aria-selected="true">Manhã</button>
+                    <button class="btn" data-mode="noite" role="tab" aria-selected="false">Noite</button>
+                </div>
             </div>
+
+            <ul class="rotina-lista" id="rotina-lista">
+                {% for item in rotina_manha %}
+                <li class="rotina-item {{ item.class }}">
+                    <div class="status">
+                        {% if item.icon %}
+                        <i class="fa-solid {{ item.icon }}" aria-hidden="true"></i>
+                        {% endif %}
+                    </div>
+                    <div class="rotina-details">
+                        <strong>{{ item.title }}</strong>
+                        <span>{{ item.description }}</span>
+                    </div>
+                    {% if item.action %}
+                    <div class="rotina-action">{{ item.action }}</div>
+                    {% else %}
+                    <div class="rotina-time">{{ item.time }}</div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+
+            {{ rotina_manha|json_script:"rotina-manha-data" }}
+            {{ rotina_noite|json_script:"rotina-noite-data" }}
         </div>
 
-        <ul class="rotina-lista" id="rotina-lista">
-            {% for item in rotina_manha %}
-            <li class="rotina-item {{ item.class }}">
-                <div class="status">
-                    {% if item.icon %}
-                    <i class="fa-solid {{ item.icon }}" aria-hidden="true"></i>
-                    {% endif %}
-                </div>
-                <div class="rotina-details">
-                    <strong>{{ item.title }}</strong>
-                    <span>{{ item.description }}</span>
-                </div>
-                {% if item.action %}
-                <div class="rotina-action">{{ item.action }}</div>
-                {% else %}
-                <div class="rotina-time">{{ item.time }}</div>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
+        <aside class="card card-uv">
+            <h3>Índice UV</h3>
 
-        {{ rotina_manha|json_script:"rotina-manha-data" }}
-        {{ rotina_noite|json_script:"rotina-noite-data" }}
+            <div class="uv-valor">
+                <strong id="uv-numero">--</strong>
+                <span id="uv-nivel" class="uv-badge"></span>
+            </div>
+
+            <div class="uv-barra">
+                <div id="uv-marcador" class="uv-marcador" hidden></div>
+            </div>
+            <div class="uv-escala"><span>Baixo</span><span>Extremo</span></div>
+
+            <p id="uv-descricao" class="uv-descricao">Obtendo índice UV...</p>
+            <p id="uv-local" class="uv-local"></p>
+
+            <small class="uv-credito">
+                Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>
+            </small>
+        </aside>
+
     </div>
+
+    <!-- Alternar Rotina-->
     <script>
         (function() {
             const rotinaManha = JSON.parse(document.getElementById('rotina-manha-data').textContent);
@@ -136,7 +163,42 @@
             });
         })();
     </script>
-</div>
+
+    <!-- Script do índice UV -->
+    <script>
+        (function() {
+            const ESCALA_MAX = 11;
+            const dicas = {
+                "baixo": "Risco baixo. Para a maioria das pessoas, não exige cuidados extras, mas é sempre bom se proteger.",
+                "moderado": "Risco moderado. Use protetor solar e procure sombra nas horas mais fortes.",
+                "alto": "Risco alto. Protetor solar, chapéu e óculos de sol são recomendados.",
+                "muito alto": "Risco muito alto. Reaplique o protetor e evite o sol entre 10h e 16h.",
+                "extremo": "Risco extremo. Evite se expor ao sol e reforce a proteção com protetor solar, roupas, chapéu e óculos de sol."
+            };
+
+            fetch("/api/uv/")
+                .then((r) => r.json())
+                .then((d) => {
+                    if (d.uv === undefined) throw new Error("sem uv");
+
+                    document.getElementById("uv-numero").textContent = d.uv;
+
+                    const badge = document.getElementById("uv-nivel");
+                    badge.textContent = d.nivel;
+                    badge.className = "uv-badge uv-" + d.nivel.replace(" ", "-");
+
+                    const marcador = document.getElementById("uv-marcador");
+                    marcador.style.left = (Math.min(d.uv, ESCALA_MAX) / ESCALA_MAX) * 100 + "%";
+                    marcador.hidden = false;
+
+                    document.getElementById("uv-descricao").textContent = dicas[d.nivel];
+                    document.getElementById("uv-local").textContent = "Em " + d.cidade;
+                })
+                .catch(() => {
+                    document.getElementById("uv-descricao").textContent = "UV indisponível no momento.";
+                });
+        })();
+    </script>
 
     {% else %}
     <div class="dashboard-cabecalho">
@@ -144,6 +206,3 @@
     </div>
     {% endif %}
 {% endblock %}
-
-
-
