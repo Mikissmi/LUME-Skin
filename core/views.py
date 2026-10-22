@@ -546,9 +546,10 @@ def tela_logout(request):
 # QUESTIONÁRIO E DASHBOARD - coleta das respostas, calculo do score e tela inicial
 # ==========================================================================
 
+
 def tela_questionario(request):
     if request.method == "POST":
-        # pega as respostas do questionario
+        # Pega as respostas do questionário
         idade = _inteiro(request.POST.get('idade'), 0, 0, 120)
         tipo_pele = request.POST.get('tipo_pele')
         alergias = request.POST.get('alergias')
@@ -558,24 +559,31 @@ def tela_questionario(request):
         base_produto = request.POST.get('base_produto')
         objective = request.POST.get('objetivo')
 
-        # "Outro": guarda o texto que a pessoa digitou no lugar da palavra "outro"
         if objective == 'outro':
-            objective = request.POST.get('objetivo_outro', '').strip()[:100] or 'outro'  # ajuste o limite ao max_length do campo
+            objective = (
+                request.POST.get('objetivo_outro', '').strip()[:100]
+                or 'outro'
+            )
 
-        # "Gel-creme" nao existe no modelo (so gel/creme): continua tratado como gel, igual ao formulario antigo
         if base_produto == 'gel-creme':
             base_produto = 'gel'
 
-        # se a pessoa descreveu a alergia, guarda a descricao (o score continua usando so o sim/nao em `alergias`)
-        alergias_salvas = descricao_alergia[:255] if alergias == '1' and descricao_alergia else alergias
+        alergias_salvas = (
+            descricao_alergia[:255]
+            if alergias == '1' and descricao_alergia
+            else alergias
+        )
 
         quer_escanear = request.POST.get('quer_escanear') == 'sim'
         consentimento_foto = request.POST.get('consentimento_foto') == '1'
         usa_maquiagem = 'sim' if maquiagem == '1' else 'nao'
+
         dados_ia_json = None
         foto_salva = None
+        resultados_ia = None
+        redirecionar_para_scanner = False
 
-        # calcula o score so com as respostas do questionario. esse e o valor padrao, usado sempre que a pessoa nao escaneia ou a API falha
+        # Calcula a porcentagem usando as respostas do questionário
         porcentagem_regras = calcular_porcentagem_saude(
             tipo_pele=tipo_pele,
             fototipo=pontos_sol + 1,
@@ -584,22 +592,20 @@ def tela_questionario(request):
         )
         porcentagem_calculada = porcentagem_regras
 
-        redirecionar_para_scanner = False
-
-        # so envia a foto para a IA com consentimento explicito (LGPD) e se o arquivo for uma imagem valida
+        # Faz a análise facial somente com consentimento
         if quer_escanear and consentimento_foto:
             foto_usuario = request.FILES.get('foto_rosto')
 
             if foto_usuario and _foto_valida(foto_usuario):
                 resultados_ia = comunicar_youcam_api(foto_usuario)
 
-                
-            if resultados_ia:
-                resultados_ia = _completar_resultados(resultados_ia)
-                dados_ia_json = json.dumps(resultados_ia)
-                foto_salva = _url_https(_extract_url(resultados_ia))
+        # Processa os resultados somente se a IA retornou dados
+        if resultados_ia:
+            resultados_ia = _completar_resultados(resultados_ia)
+            dados_ia_json = json.dumps(resultados_ia)
+            foto_salva = _url_https(_extract_url(resultados_ia))
 
-        # Monta os indicadores para exibir na tela do scanner
+            # Monta os indicadores para a tela do scanner
             indicadores = [
                 montar_indicador(
                     'oleosidade',
@@ -614,7 +620,7 @@ def tela_questionario(request):
                     _media_ou_none(
                         _extract_score(resultados_ia, 'acne'),
                         _extract_score(resultados_ia, 'pore')
-                        )
+                    )
                 ),
                 montar_indicador(
                     'textura',
@@ -624,16 +630,18 @@ def tela_questionario(request):
                     'manchas',
                     _extract_score(resultados_ia, 'age_spot')
                 ),
-                ]
+            ]
 
             notas_disponiveis = [
-            indicador['nota']
-            for indicador in indicadores
-            if indicador['nota'] is not None
-                ]
+                indicador['nota']
+                for indicador in indicadores
+                if indicador['nota'] is not None
+            ]
 
             score_geral = (
-                round(sum(notas_disponiveis) / len(notas_disponiveis))
+                round(
+                    sum(notas_disponiveis) / len(notas_disponiveis)
+                )
                 if notas_disponiveis
                 else None
             )
@@ -644,71 +652,69 @@ def tela_questionario(request):
                 'mapeamento_facial': foto_salva,
             }
 
-        redirecionar_para_scanner = True
+            redirecionar_para_scanner = True
 
-        # A IA entra com 50% do score;
-        # indicadores que a YouCam não mediu são ignorados
-        porcentagem_ia = _media_ou_none(
-            _extract_score(resultados_ia, 'acne'),
-            _extract_score(resultados_ia, 'pore'),
-            _extract_score(resultados_ia, 'oiliness'),
-        )
-
-        if porcentagem_ia is not None:
-            porcentagem_calculada = round(
-                (porcentagem_ia + porcentagem_regras) / 2
+            # A IA contribui com 50% do score, usando os dados disponíveis
+            porcentagem_ia = _media_ou_none(
+                _extract_score(resultados_ia, 'acne'),
+                _extract_score(resultados_ia, 'pore'),
+                _extract_score(resultados_ia, 'oiliness'),
             )
 
             if porcentagem_ia is not None:
-                            porcentagem_calculada = round((porcentagem_ia + porcentagem_regras) / 2)
+                porcentagem_calculada = round(
+                    (porcentagem_ia + porcentagem_regras) / 2
+                )
 
-        
-                # Salva ou atualiza o perfil no banco
+        # Salva ou atualiza o perfil
         if request.user.is_authenticated:
             perfil, created = PerfilDermatologico.objects.get_or_create(
-            usuario=request.user,
-            defaults={
-                'idade': idade,
-                'tipo_pele': tipo_pele or 'normal',
-                'alergias': alergias_salvas or '',
-                'objetivo': objective or 'Melhorar a pele',
-                'preferencia_produto': base_produto if base_produto in ('creme', 'gel') else 'gel',
-                'usa_maquiagem_diariamente': usa_maquiagem,
-                'porcentagem_saude': porcentagem_calculada,
-                'fototipo': pontos_sol + 1,
-                'dados_ia': dados_ia_json,
-                'foto_rosto': foto_salva,
-            }
-    )
-
-        perfil.idade = idade or perfil.idade
-        perfil.tipo_pele = tipo_pele or perfil.tipo_pele
-        perfil.alergias = alergias_salvas or perfil.alergias
-        perfil.usa_maquiagem_diariamente = usa_maquiagem
-        perfil.fototipo = pontos_sol + 1
-        perfil.objetivo = objective or perfil.objetivo
-        perfil.preferencia_produto = (
-                base_produto
-                if base_produto in ('creme', 'gel')
-                else perfil.preferencia_produto
+                usuario=request.user,
+                defaults={
+                    'idade': idade,
+                    'tipo_pele': tipo_pele or 'normal',
+                    'alergias': alergias_salvas or '',
+                    'objetivo': objective or 'Melhorar a pele',
+                    'preferencia_produto': (
+                        base_produto
+                        if base_produto in ('creme', 'gel')
+                        else 'gel'
+                    ),
+                    'usa_maquiagem_diariamente': usa_maquiagem,
+                    'porcentagem_saude': porcentagem_calculada,
+                    'fototipo': pontos_sol + 1,
+                    'dados_ia': dados_ia_json,
+                    'foto_rosto': foto_salva,
+                }
             )
-        perfil.porcentagem_saude = porcentagem_calculada
 
-    # Só troca a análise se houve um novo scan
-        if dados_ia_json:
-            perfil.dados_ia = dados_ia_json
-            perfil.foto_rosto = foto_salva
+            perfil.idade = idade or perfil.idade
+            perfil.tipo_pele = tipo_pele or perfil.tipo_pele
+            perfil.alergias = alergias_salvas or perfil.alergias
+            perfil.usa_maquiagem_diariamente = usa_maquiagem
+            perfil.fototipo = pontos_sol + 1
+            perfil.objetivo = objective or perfil.objetivo
+
+            if base_produto in ('creme', 'gel'):
+                perfil.preferencia_produto = base_produto
+
+            perfil.porcentagem_saude = porcentagem_calculada
+
+            # Só substitui a análise anterior se houve um novo scan
+            if dados_ia_json:
+                perfil.dados_ia = dados_ia_json
+                perfil.foto_rosto = foto_salva
 
             perfil.save()
 
-    
-        # Define para onde a pessoa será direcionada
+            # Redireciona conforme o fluxo realizado
             if redirecionar_para_scanner:
                 return redirect('scanner')
 
             return redirect('dashboard')
 
-    return render(requests.request, 'core/questionario.html')
+    return render(request, 'core/questionario.html')
+
 
 
 def dashboard_view(request):
@@ -962,21 +968,8 @@ def scanner_salvar(request):
     return JsonResponse({'ok': True})
 
 
-
 def tela_scanner(request):
-    resultado_inicial = request.session.pop(
-        'resultado_scanner_inicial',
-        None
-    )
-
-    return render(
-        request,
-        'core/scanner.html',
-        {
-            'resultado_inicial': resultado_inicial,
-        }
-    )
-
+    return render(request, 'core/scanner.html')
 
 
 # ==========================================================================
