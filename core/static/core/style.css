@@ -244,6 +244,23 @@ body.body {
 }
 
 /* Mensagem de erro no login */
+
+.alerta-erro {
+    background: #fdecec;
+    color: #c53030;
+    border: 1px solid #f5b5b5;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    animation: alerta-sumir 0.4s ease 5s forwards;
+}
+
+@keyframes alerta-sumir {
+    to { opacity: 0; visibility: hidden; height: 0; padding: 0; margin: 0; border: 0; }
+}
+
 .form-erro {
     color: #e53e3e;
     font-size: 13px;

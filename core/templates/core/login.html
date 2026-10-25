@@ -21,13 +21,17 @@
                     <button class="active">Login</button>
                     <button>Criar Conta</button>
                 </div>
-                <h2>Bem-vindo de volta</h2>
-                <p class="subtitle">Acesse sua conta para continuar sua jornada.</p>
-                
-                <form method="POST" action="{% url 'login' %}">
+            <h2>Bem-vindo de volta</h2>
+             <p class="subtitle">Acesse sua conta para continuar sua jornada.</p>
+
+           {% for message in messages %}
+              <div class="alerta-erro" role="alert">{{ message }}</div>
+           {% endfor %}
+
+                   <form method="POST" action="{% url 'login' %}">
                     {% csrf_token %}
                     <label>E-mail</label>
-                    <input type="email" name="email" placeholder="seu@email.com" required>
+                    <input type="email" name="email" placeholder="seu@email.com" value="{{ email|default:'' }}" required>
                     
                     <label>Senha <a href="#" class="forgot">Esqueceu a senha?</a></label>
                     <input type="password" name="senha" placeholder="••••••••" required>

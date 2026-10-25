@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import reverse
+from django.contrib import messages
 from functools import wraps
 from .models import Usuario, PerfilDermatologico, Artigo, Especialista, Produto
 from .recomendacao import recomendar_produtos, classificar_indicador
@@ -535,9 +536,9 @@ def tela_login(request):
             auth_login(request, usuario)
             return redirect('dashboard')
         else:
-            return render(request, 'core/login.html', {'erro': 'Usuário ou senha incorretos'})
+            return render(request, 'core/cadastro.html', {'erro': 'E-mail ou senha incorretos.'})
 
-    return render(request, 'core/login.html')
+    return render(request, 'core/cadastro.html')
 
 
 def tela_logout(request):
