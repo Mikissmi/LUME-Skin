@@ -16,7 +16,7 @@
         {% for especialista in especialistas %}
             <div class="card-especialista">
                 <div class="especialista-imagem">
-                <img src="https://images.icon-icons.com/3446/PNG/512/account_profile_user_avatar_icon_219236.png" alt="{{ especialista.nome }}">
+                <img src="{{ especialista.url_foto }}" alt="{{ especialista.nome }}">
                 </div>
                 <h4>{{ especialista.nome }}</h4>
                 <p class="especialista-descricao">{{ especialista.especialidade|capfirst }}{% if especialista.crm %} · {{ especialista.crm }}{% endif %}</p>
