@@ -677,6 +677,35 @@ body.body {
     cursor: pointer;
 }
 
+#camera-video {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 16px;
+    background: #000;
+    transform: scaleX(-1);   /* só espelha a prévia, a foto sai normal */
+    display: block;
+    margin: 12px 0;
+}
+
+#btn-abrir-camera { margin: 8px 0; }
+
+.btn:disabled,
+#input-foto:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.camera-botoes {
+    display: flex;
+    gap: 12px;
+}
+
+.camera-botoes .btn {
+    flex: 1;
+    width: auto;
+    margin: 0;
+}
+
 /* ==========================================================================
    7. RESPONSIVIDADE DO QUESTIONARIO
    ========================================================================== */

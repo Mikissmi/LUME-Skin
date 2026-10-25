@@ -172,11 +172,31 @@
 
                     <!-- upload e consentimento aparecem so com "Sim" (js) -->
                     <div id="bloco-upload-foto" class="bloco-upload-foto" hidden>
-                        <label for="input-foto">Envie uma foto clara do seu rosto de frente:</label>
-                        <input type="file" name="foto_rosto" accept="image/jpeg,image/png,image/webp" id="input-foto"
-                               aria-describedby="foto-ajuda foto-erro">
+                   <label class="consentimento" for="consentimento-foto">
+                   <input type="checkbox" name="consentimento_foto" value="1" id="consentimento-foto">
+                   <span>
+                         Li e concordo com os <a href="#">Termos de Serviço</a> e a <a href="#">Política de Privacidade</a>
+                        e autorizo, de forma específica, o tratamento da foto do meu rosto (dado pessoal sensível)
+                         apenas para gerar a análise da minha pele com inteligência artificial.
+                   </span>
+                  </label>
+
+                    <label for="input-foto">Envie uma foto clara do seu rosto de frente ou tire uma agora:</label>
+                        <input type="file" name="foto_rosto" accept="image/jpeg,image/png,image/webp" id="input-foto"aria-describedby="foto-ajuda foto-erro" disabled>
                         <p class="foto-ajuda" id="foto-ajuda">Formatos aceitos: JPG, PNG ou WebP. Tamanho máximo: 5 MB.</p>
                         <p class="foto-erro" id="foto-erro" role="alert" hidden></p>
+
+                       <button type="button" class="btn" id="btn-abrir-camera" disabled>Tirar foto agora</button>
+
+                       <div id="camera-area" hidden>
+                        <video id="camera-video" autoplay playsinline muted></video>
+                            <div class="camera-botoes">
+                                <button type="button" class="btn" id="btn-capturar">Capturar</button>
+                                <button type="button" class="btn" id="btn-fechar-camera">Cancelar</button>
+                            </div>
+                        </div>
+                       
+                       <canvas id="camera-canvas" hidden></canvas>
 
                         <div class="foto-preview" id="foto-preview" hidden>
                             <img id="foto-preview-img" alt="Pré-visualização da foto escolhida">
@@ -187,14 +207,7 @@
                             </div>
                         </div>
 
-                        <label class="consentimento" for="consentimento-foto">
-                            <input type="checkbox" name="consentimento_foto" value="1" id="consentimento-foto">
-                            <span>
-                                Li e concordo com os <a href="#">Termos de Serviço</a> e a <a href="#">Política de Privacidade</a>
-                                e autorizo, de forma específica, o tratamento da foto do meu rosto (dado pessoal sensível)
-                                apenas para gerar a análise da minha pele com inteligência artificial.
-                            </span>
-                        </label>
+                        
                     </div>
                 </div>
 
@@ -291,11 +304,65 @@
             inputFoto.focus();
         });
 
+        /* camera: tira a foto e coloca no mesmo input de arquivo */
+        const btnAbrirCamera = document.getElementById('btn-abrir-camera');
+        const cameraArea = document.getElementById('camera-area');
+        const cameraVideo = document.getElementById('camera-video');
+        const btnCapturar = document.getElementById('btn-capturar');
+        const btnFecharCamera = document.getElementById('btn-fechar-camera');
+        const cameraCanvas = document.getElementById('camera-canvas');
+        let streamCamera = null;
+
+        function pararCamera() {
+             if (streamCamera) { streamCamera.getTracks().forEach(function (t) { t.stop(); }); }
+            streamCamera = null;
+            cameraVideo.srcObject = null;
+            cameraArea.hidden = true;
+        }
+
+        btnAbrirCamera.addEventListener('click', async function () {
+            mostrarErroFoto('');
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+             mostrarErroFoto('Seu navegador não permite usar a câmera aqui. Envie uma foto da galeria.');
+                return;
+            }
+        try {
+        streamCamera = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 1280 } },
+            audio: false
+        });
+        cameraVideo.srcObject = streamCamera;
+        cameraArea.hidden = false;
+    } catch (e) {
+        mostrarErroFoto('Não foi possível acessar a câmera. Verifique a permissão do navegador ou envie uma foto da galeria.');
+    }
+});
+
+btnCapturar.addEventListener('click', function () {
+    cameraCanvas.width = cameraVideo.videoWidth;
+    cameraCanvas.height = cameraVideo.videoHeight;
+    cameraCanvas.getContext('2d').drawImage(cameraVideo, 0, 0);
+
+    cameraCanvas.toBlob(function (blob) {
+        if (!blob) { return; }
+        const arquivo = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
+        const dt = new DataTransfer();
+        dt.items.add(arquivo);
+        inputFoto.files = dt.files;
+        /* dispara o seu "change": ele valida o tamanho e mostra o preview */
+        inputFoto.dispatchEvent(new Event('change'));
+        pararCamera();
+    }, 'image/jpeg', 0.9);
+});
+
+btnFecharCamera.addEventListener('click', pararCamera);
+
         /* mostra ou esconde um campo (so e obrigatorio enquanto aparece) */
         function alternarTexto(campo, mostrar) {
             campo.hidden = !mostrar;
             campo.required = mostrar;
             if (!mostrar) { campo.value = ''; }
+            
         }
 
         function atualizarCamposCondicionais() {
@@ -312,8 +379,16 @@
             inputFoto.required = escanear;
             consentimentoFoto.required = escanear;
             if (!escanear) {
-                limparFoto();
-                consentimentoFoto.checked = false;
+            consentimentoFoto.checked = false;
+        }
+
+            /* a foto (arquivo ou camera) so e liberada depois do consentimento */
+            const consentiu = escanear && consentimentoFoto.checked;
+            inputFoto.disabled = !consentiu;
+            btnAbrirCamera.disabled = !consentiu;
+            if (!consentiu) {
+             pararCamera();
+             limparFoto();
             }
         }
 
